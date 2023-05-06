@@ -70,7 +70,7 @@ public class APIHelper : IAPIHelper
         _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _apiClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
-        using HttpResponseMessage response = await _apiClient.GetAsync("/api/user/GetByObjectId");
+        using HttpResponseMessage response = await _apiClient.GetAsync("/api/user/GetMyId");
         if (response.IsSuccessStatusCode)
         {
             var responseResult = await response.Content.ReadAsAsync<LoggedInUserModel>();

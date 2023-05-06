@@ -1,7 +1,39 @@
 ﻿@page "/"
+@using System.Security.Claims;
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+@inject IUserData userData
+@inject IUserEndpoint userEndpoint
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+<div>Welcome to your new app.</div>
+
+<button class="btn btn-success" @onclick="LoadRegisterPage">
+    Register
+</button>
+
+<AuthorizeView>
+    <Authorized>
+        @context.User.FindFirst(ClaimTypes.Name).Value
+    </Authorized>
+</AuthorizeView>
+
+@loggedInUser?.DisplayName
+
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@code {
+    private UserModel loggedInUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData, userEndpoint);
+    }
+
+    private void LoadRegisterPage()
+    {
+        navManager.NavigateTo("/Register");
+    }
+}

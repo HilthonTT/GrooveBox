@@ -1,0 +1,93 @@
+﻿@page "/register"
+@inject IUserEndpoint userEndpoint
+@inject IUserData userData
+@inject IOidGenerator oidGenerator
+@inject IAuthenticationService authService
+@inject NavigationManager navManager
+@attribute [AllowAnonymous]
+
+@if (string.IsNullOrWhiteSpace(errorMessage) is false)
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+
+<h1>Register</h1>
+
+
+<div>
+    <div>
+        <div>
+            <div>
+                <EditForm Model="user" OnValidSubmit="RegisterAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div>
+                        <InputText @bind-Value="user.FirstName" placeholder="First Name"/>
+                    </div>
+                    <div>
+                        <InputText @bind-Value="user.LastName" placeholder="Last Name"/>
+                    </div>
+                    <div>
+                        <InputText @bind-Value="user.DisplayName" placeholder="Display Name"/>
+                    </div>
+                    <div>
+                        <InputText @bind-Value="user.EmailAddress" placeholder="Email Address"/>
+                    </div>
+                    <div>
+                        <InputText @bind-Value="user.Password" placeholder="Password"/>
+                    </div>
+                    <div>
+                        <InputText @bind-Value="user.ConfirmPassword" placeholder="Confirm Password"/>
+                    </div>
+                    <div>
+                        <button class="btn btn-success" type="submit">
+                            Register
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    CreateUserModel user = new();
+    private string errorMessage = "";
+
+    private async Task RegisterAsync()
+    {
+        try
+        {
+            errorMessage = "";
+            string objectId = await oidGenerator.GenerateOidAsync();
+            UserModel u = new()
+            {
+                ObjectIdentifier = objectId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DisplayName = user.DisplayName,
+                EmailAddress = user.EmailAddress,
+                FileName = user.FileName,
+            };
+            user.ObjectIdentifier = objectId;
+
+            await userEndpoint.CreateUserAsync(user);
+            await userData.CreateUserAsync(u);
+            AuthenticatedUserModel result = await authService.Login(new() { Email = user.EmailAddress, Password = user.Password });
+            if (result is not null)
+            {
+                navManager.NavigateTo("/");
+                return;
+            }
+
+            errorMessage = "You've successfully registered but there was an error trying to log you in.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+}

@@ -1,6 +1,5 @@
 ﻿using GrooveBoxApi.Data;
 using GrooveBoxApi.DataAccess;
-using GrooveBoxApi.DataBaseModel;
 using GrooveBoxApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace GrooveBoxApi.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -31,7 +34,7 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Route("GetMyId")]
-    public ApplicationUserModel GetByObjectId()
+    public ApplicationUserModel GetMyId()
     {
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         
@@ -53,6 +56,45 @@ public class UserController : ControllerBase
         return user;
     }
 
+    public record GetId(
+        string Id
+    );
+
+    [HttpPost]
+    [Route("GetById")]
+    public ApplicationUserModel GetById(GetId Id)
+    {
+        try
+        {
+            UserModel userModel = _userData.GetUserById(Id.Id);
+
+            if (userModel is not null)
+            {
+                ApplicationUserModel user = new()
+                {
+                    Id = userModel.Id,
+                    EmailAddress = userModel.EmailAddress,
+                    ObjectIdentifier = userModel.ObjectIdentifier,
+                    DisplayName = userModel.DisplayName,
+                };
+
+                var userRoles = from ur in _context.UserRoles
+                                join r in _context.Roles on ur.RoleId equals r.Id
+                                select new { ur.UserId, ur.RoleId, r.Name };
+
+                user.Roles = userRoles.Where(x => x.UserId == user.Id).ToDictionary(key => key.RoleId, val => val.Name);
+                return user;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return null;
+        }
+    }
+
     [HttpPost]
     [Route("UpdateUser")]
     [Authorize(Roles = "Admin")]
@@ -64,7 +106,6 @@ public class UserController : ControllerBase
             var u = _context.Users.Where(x => x.Id == user.Id).First();
 
             u.Id = user.Id;
-            u.ObjectIdentifier = user.ObjectIdentifier;
             u.Email = user.EmailAddress;
             u.EmailConfirmed = true;
             u.UserName = user.DisplayName;
@@ -76,9 +117,9 @@ public class UserController : ControllerBase
             _logger.LogError(ex.Message);
         }
     }
-
+    
     public record UserRegistrationModel(
-        string ObjectId,
+        string ObjectIdentifier,
         string FirstName,
         string LastName,
         string DisplayName,
@@ -96,9 +137,8 @@ public class UserController : ControllerBase
             var existingUser = await _userManager.FindByEmailAsync(user.EmailAddress);
             if (existingUser is null)
             {
-                ApplicationUser newUser = new()
+                IdentityUser newUser = new()
                 {
-                    ObjectIdentifier = user.ObjectId,
                     Email = user.EmailAddress,
                     EmailConfirmed = true,
                     UserName = user.DisplayName,
@@ -118,7 +158,7 @@ public class UserController : ControllerBase
                     UserModel u = new()
                     {
                         Id = existingUser.Id,
-                        ObjectIdentifier = user.ObjectId,
+                        ObjectIdentifier = user.ObjectIdentifier,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         DisplayName = user.DisplayName,

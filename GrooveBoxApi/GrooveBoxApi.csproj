@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-GrooveBoxApi-834bcd97-e752-4a24-b015-8bbb5d672386</UserSecretsId>
   </PropertyGroup>

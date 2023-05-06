@@ -19,6 +19,13 @@ public class UserData : IUserData
         return output.FirstOrDefault();
     }
 
+    public UserModel GetUserByObjectId(string objectId)
+    {
+        var output = _sql.LoadData<UserModel, dynamic>("dbo.spUser_GetByObjectId", new { objectId }, DataBaseName);
+
+        return output.FirstOrDefault();
+    }
+
     public void InsertUser(UserModel user)
     {
         _sql.SaveData("dbo.spUser_Insert", user, DataBaseName);

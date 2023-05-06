@@ -1,6 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using GrooveBoxDesktop.Authentication;
 using GrooveBoxDesktop.Data;
+using GrooveBoxDesktop.Helpers;
 using GrooveBoxLibrary.API;
 using GrooveBoxLibrary.DataAccess;
 using GrooveBoxLibrary.Models;
@@ -38,7 +39,9 @@ public static class RegisterServices
 
         //Personal Services
         builder.Services.AddSingleton<IAPIHelper, APIHelper>();
+        builder.Services.AddSingleton<IUserEndpoint, UserEndpoint>();
         builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
+        builder.Services.AddSingleton<IOidGenerator, OidGenerator>();
 
         builder.Services.AddSingleton<IDbConnection, DbConnection>();
         builder.Services.AddSingleton<IUserData, MongoUserData>();
