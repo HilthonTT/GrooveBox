@@ -13,4 +13,5 @@ public interface ILoggedInUserModel
     string Token { get; set; }
     List<BasicMediaFileModel> VotedOnFiles { get; set; }
     Dictionary<string, string> Roles { get; set; }
+    List<BasicUserModel> SubscribedAuthors { get; set; }
 }

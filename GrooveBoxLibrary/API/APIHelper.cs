@@ -81,11 +81,12 @@ public class APIHelper : IAPIHelper
             _loggedInUser.FileName = dbResult.FileName;
             _loggedInUser.FirstName = dbResult.FirstName;
             _loggedInUser.LastName = dbResult.LastName;
-            _loggedInUser.DisplayName = responseResult.DisplayName;
+            _loggedInUser.DisplayName = dbResult.DisplayName;
             _loggedInUser.EmailAddress = dbResult.EmailAddress;
             _loggedInUser.Roles = responseResult.Roles;
             _loggedInUser.AuthoredFiles = dbResult.AuthoredFiles;
             _loggedInUser.VotedOnFiles = dbResult.VotedOnFiles;
+            _loggedInUser.SubscribedAuthors = dbResult.SubscribedAuthors;
             _loggedInUser.Token = token;
         }
         else

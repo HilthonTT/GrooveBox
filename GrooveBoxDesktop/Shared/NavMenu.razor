@@ -1,39 +1,153 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">GrooveBoxDesktop</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+﻿@inject ILoggedInUserModel loggedInUser
+@inject IGenreData genreData
+@inject NavigationManager navManager
+
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
+    <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+        <span class="fs-4">Groove Box</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-0">
+        <li class="nav-item">
+            <a href="/" class="nav-link active" aria-current="page">
+                <svg class="bi me-2" width="16" height="16"><use xlink:href="/"></use></svg>
+                <span class="oi oi-home"></span>Home
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/Subscriptions" class="nav-link active">
+                <svg class="bi me-2" width="16" height="16"><use xlink:href="/Subscriptions"></use></svg>
+                <span class="oi oi-book"></span>Subscriptions
+            </a>
+        </li>
+    </ul>
+    <hr />
+    <ul class="nav nav-pills flex-column mb-0">
+        <li class="nav-item">
+            <a href="/YourVideos" class="nav-link active" aria-current="page">
+                <svg class="bi me-2" width="16" height="16"><use xlink:href="/YourVideos"></use></svg>
+                <span class="oi oi-video"></span>Your videos
+            </a>
+        </li>
+    </ul>
+    <hr />
+    <div class="text-uppercase fw-bold">Subscriptions</div>
+    <ul class="nav nav-pills flex-column mb-0">
+        @if (loggedInUser?.SubscribedAuthors != null && loggedInUser.SubscribedAuthors.Any())
+        {      
+            <Virtualize Items="GetVisibleAuthors()" Context="a" OverscanCount="3">
+                <li class="nav-item custom-pointer" @onclick="(() => LoadAuthorProfilePage(a))">
+                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available."
+                            alt="@a.FileName"
+                            class="rounded-circle me-2"
+                            width="32"
+                            height="32">
+                    </li>
+            </Virtualize>     
+            @if (loggedInUser.SubscribedAuthors.Count() > 3)
+            {
+                <button @onclick="ShowAllAuthors">
+                    Show @GetUserSubscriptionCount() More
+                </button>
+            }
+        }
+    </ul>
+    <hr />
+    <div class="text-uppercase fw-bold">Explore</div>
+    <ul class="nav nav-pills flex-column mb-auto">
+        @if (genres is not null)
+        {
+            <Virtualize Items="genres" Context="g" OverscanCount="5">
+                <li class="nav-item custom-pointer" @onclick="(() => LoadVideosPageWithGenre(g))">
+                    <a href="#" class="nav-link active" aria-current="page">
+                        <svg class="bi me-2" width="16" height="16"><use xlink:href="#"></use></svg>
+                        <span class="oi oi-musical-note"></span>@g.GenreName
+                    </a>
+                </li>
+            </Virtualize>
+        }
+    </ul>
+    <hr />
+    <div class="dropdown">
+        <a href="#" 
+            class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" 
+            id="user-dropdown" 
+            data-bs-toggle="dropdown" 
+            aria-expanded="false">
+        @if (string.IsNullOrWhiteSpace(loggedInUser.FileName) is false)
+        {
+            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                alt="@loggedInUser.FileName" 
+                class="rounded-circle me-2" 
+                width="32" 
+                height="32">
+        }
+        else
+        {
+            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                class="rounded-circle me-2"
+                alt="Placeholder Image"
+                width="32" 
+                height="32">
+        }     
+        <strong>@loggedInUser.DisplayName</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="user-dropdown">
+        <li><a class="dropdown-item" href="/Studio">Studio</a></li>
+        <li><a class="dropdown-item" href="/Settings">Settings</a></li>
+        <li><a class="dropdown-item" href="/Profile">Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <AuthorizeView>
+            <Authorized>
+                <li><a class="dropdown-item" href="/LogOut">Log out</a></li>
+            </Authorized>
+            <NotAuthorized>
+                <li><a class="dropdown-item" href="/Login">Log in</a></li>
+            </NotAuthorized>
+        </AuthorizeView>
+        </ul>
     </div>
 </div>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
 @code {
-    private bool collapseNavMenu = true;
+    private bool showAllAuthors = false;
+    private List<GenreModel> genres;
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
+    protected override async Task OnInitializedAsync()
     {
-        collapseNavMenu = !collapseNavMenu;
+        genres = await genreData.GetAllGenresAsync();
+    }
+
+    private List<BasicUserModel> GetVisibleAuthors()
+    {
+        if (showAllAuthors)
+        {
+            return loggedInUser.SubscribedAuthors;
+        }
+        else
+        {
+            return loggedInUser.SubscribedAuthors.Take(3).ToList();
+        }
+    }
+
+    private void ShowAllAuthors()
+    {
+        showAllAuthors = true;
+    }
+
+    private string GetUserSubscriptionCount()
+    {
+        return loggedInUser.SubscribedAuthors.Count.ToString();
+    }
+
+    private void LoadVideosPageWithGenre(GenreModel genre)
+    {
+        navManager.NavigateTo($"/{genre.GenreName}");
+    }
+
+    private void LoadAuthorProfilePage(BasicUserModel author)
+    {
+        navManager.NavigateTo($"/UserDetails/{author.Id}");
     }
 }

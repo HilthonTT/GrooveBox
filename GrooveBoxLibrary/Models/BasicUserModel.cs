@@ -4,6 +4,7 @@ public class BasicUserModel
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
     public string DisplayName { get; set; }
+    public string FileName { get; set; }
 
     public BasicUserModel()
     {
@@ -14,5 +15,6 @@ public class BasicUserModel
     {
         Id = user.Id;
         DisplayName = user.DisplayName;
+        FileName = user.FileName;
     }
 }

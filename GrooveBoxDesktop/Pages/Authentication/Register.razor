@@ -24,27 +24,43 @@
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <div>
+                        <label></label>
+                        <div></div>
                         <InputText @bind-Value="user.FirstName" placeholder="First Name"/>
                     </div>
                     <div>
+                        <label></label>
+                        <div></div>
                         <InputText @bind-Value="user.LastName" placeholder="Last Name"/>
                     </div>
                     <div>
+                        <label></label>
+                        <div></div>
                         <InputText @bind-Value="user.DisplayName" placeholder="Display Name"/>
                     </div>
                     <div>
+                        <label></label>
+                        <div></div>
                         <InputText @bind-Value="user.EmailAddress" placeholder="Email Address"/>
                     </div>
                     <div>
+                        <label></label>
+                        <div></div>
                         <InputText @bind-Value="user.Password" placeholder="Password"/>
                     </div>
                     <div>
+                        <label></label>
+                        <div></div>
                         <InputText @bind-Value="user.ConfirmPassword" placeholder="Confirm Password"/>
                     </div>
                     <div>
                         <button class="btn btn-success" type="submit">
                             Register
                         </button>
+                    </div>
+                    <div>
+                        <label>Already have an account?</label>
+                        <button type="button" @onclick="LoadLoginPage">Login</button>
                     </div>
                 </EditForm>
             </div>
@@ -89,5 +105,10 @@
         {
             errorMessage = ex.Message;
         }
+    }
+
+    private void LoadLoginPage()
+    {
+        navManager.NavigateTo("/login");
     }
 }
