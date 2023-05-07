@@ -1,0 +1,83 @@
+﻿@page "/SampleData"
+@inject ILoggedInUserModel loggedInUser
+@inject IGenreData genreData
+@inject IMediaFileData mediaFileData
+@inject IUserEndpoint userEndpoint
+@inject NavigationManager navManager
+@attribute [Authorize(Roles = "Admin")]
+
+<h3>SampleData</h3>
+
+@if (genresCreated is false)
+{
+    <button class="btn btn-primary" @onclick="CreateGenres">Create Genres</button>
+}
+
+@if (mediaFileCreated is false)
+{
+    <button class="btn btn-primary" @onclick="CreateMediaFile">Create Media File</button>
+}
+
+@code {
+    private bool genresCreated = false;
+    private bool mediaFileCreated = false;
+
+    private async Task CreateGenres()
+    {
+        var genres = await genreData.GetAllGenresAsync();
+        if (genres?.Count > 0)
+        {
+            return;
+        }
+
+        GenreModel g = new()
+        {
+            GenreName = "Music",
+            GenreDescription = "Check out today's top talent by finding different artists!",
+        };
+
+        await genreData.CreateGenreAsync(g);
+
+        g = new()
+        {
+            GenreName = "Gaming",
+            GenreDescription = "Look at your favorite competitive gamers or play with them!",
+        };
+
+        await genreData.CreateGenreAsync(g);
+
+        g = new()
+        {
+            GenreName = "News",
+            GenreDescription = "Get yourself informed on the latest information about today's world!",
+        };
+
+        await genreData.CreateGenreAsync(g);
+
+        g = new()
+        {
+            GenreName = "Sports",
+            GenreDescription = "Watch the most impressive topics about your favorite sport!",
+        };
+
+        await genreData.CreateGenreAsync(g);
+        genresCreated = true;
+    }
+
+    private async Task CreateMediaFile()
+    {
+        var genres = await genreData.GetAllGenresAsync();
+        MediaFileModel m = new()
+        {
+            Title = "Minecraft but this video is trash!",
+            Description = "Go buy my merch guys!",
+            MediaType = MediaType.Video,
+            DateCreated = DateTime.UtcNow,
+            Genre = genres.FirstOrDefault(),
+            Author = new BasicUserModel(loggedInUser),
+        };
+
+        await mediaFileData.CreateMediaFileAsync(m);
+        mediaFileCreated = true;
+    }
+}

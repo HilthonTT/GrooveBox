@@ -86,3 +86,9 @@ a, .btn-link {
 .custom-pointer {
     cursor: pointer !important;
 }
+
+.navbar-hr {
+    border-style: solid;
+    border-color: white !important;
+    margin-bottom: 5px !important;
+}

@@ -42,6 +42,7 @@ public static class RegisterServices
         builder.Services.AddSingleton<IUserEndpoint, UserEndpoint>();
         builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
         builder.Services.AddSingleton<IOidGenerator, OidGenerator>();
+        builder.Services.AddSingleton<ISecureStorageWrapper, SecureStorageWrapper>();
 
         builder.Services.AddSingleton<IDbConnection, DbConnection>();
         builder.Services.AddSingleton<IUserData, MongoUserData>();

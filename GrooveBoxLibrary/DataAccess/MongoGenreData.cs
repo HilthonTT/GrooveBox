@@ -25,7 +25,7 @@ public class MongoGenreData : IGenreData
         return output;
     }
 
-    public Task CreateCategoryAsync(GenreModel genre)
+    public Task CreateGenreAsync(GenreModel genre)
     {
         return _genres.InsertOneAsync(genre);
     }

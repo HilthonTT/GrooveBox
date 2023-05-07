@@ -7,7 +7,7 @@
         <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
         <span class="fs-4">Groove Box</span>
     </a>
-    <hr>
+    <hr class="navbar-hr">
     <ul class="nav nav-pills flex-column mb-0">
         <li class="nav-item">
             <a href="/" class="nav-link active" aria-current="page">
@@ -21,9 +21,6 @@
                 <span class="oi oi-book"></span>Subscriptions
             </a>
         </li>
-    </ul>
-    <hr />
-    <ul class="nav nav-pills flex-column mb-0">
         <li class="nav-item">
             <a href="/YourVideos" class="nav-link active" aria-current="page">
                 <svg class="bi me-2" width="16" height="16"><use xlink:href="/YourVideos"></use></svg>
@@ -31,7 +28,7 @@
             </a>
         </li>
     </ul>
-    <hr />
+    <hr class="navbar-hr" />
     <div class="text-uppercase fw-bold">Subscriptions</div>
     <ul class="nav nav-pills flex-column mb-0">
         @if (loggedInUser?.SubscribedAuthors != null && loggedInUser.SubscribedAuthors.Any())
@@ -53,7 +50,7 @@
             }
         }
     </ul>
-    <hr />
+    <hr class="navbar-hr"/>
     <div class="text-uppercase fw-bold">Explore</div>
     <ul class="nav nav-pills flex-column mb-auto">
         @if (genres is not null)
@@ -62,13 +59,13 @@
                 <li class="nav-item custom-pointer" @onclick="(() => LoadVideosPageWithGenre(g))">
                     <a href="#" class="nav-link active" aria-current="page">
                         <svg class="bi me-2" width="16" height="16"><use xlink:href="#"></use></svg>
-                        <span class="oi oi-musical-note"></span>@g.GenreName
+                        <span class="oi @GetGenreIconClass(g)"></span>@g.GenreName
                     </a>
                 </li>
             </Virtualize>
         }
     </ul>
-    <hr />
+    <hr class="navbar-hr" />
     <div class="dropdown">
         <a href="#" 
             class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" 
@@ -149,5 +146,30 @@
     private void LoadAuthorProfilePage(BasicUserModel author)
     {
         navManager.NavigateTo($"/UserDetails/{author.Id}");
+    }
+
+    private string GetGenreIconClass(GenreModel genre)
+    {
+        if (genre.GenreName == "Music")
+        {
+            return "oi-musical-note";
+        }
+
+        if (genre.GenreName == "Gaming")
+        {
+            return "oi-bug";
+        }
+
+        if (genre.GenreName == "News")
+        {
+            return "oi-paperclip";
+        }
+
+        if (genre.GenreName == "Sports")
+        {
+            return "oi-badge";
+        }
+
+        return "oi-question-mark";
     }
 }

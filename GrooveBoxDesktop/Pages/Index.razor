@@ -1,12 +1,82 @@
 ﻿@page "/"
-@inject NavigationManager navManager
-@inject AuthenticationStateProvider authProvider
-@inject IUserData userData
-@inject IUserEndpoint userEndpoint
 @inject ILoggedInUserModel loggedInUser
-
-@loggedInUser.DisplayName
+@inject IMediaFileData mediaFileData
+@inject IGenreData genreData
+@inject NavigationManager navManager
+@inject ISecureStorageWrapper secureStorage
 
 @code {
+    private List<MediaFileModel> mediaFiles;
+    private List<GenreModel> genres;
+    private string searchText = "";
+    private string selectedGenre = "All";
+    private bool isFiltering = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        mediaFiles = await mediaFileData.GetAllMediaFilesAsync();
+        genres = await genreData.GetAllGenresAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterMedias();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        string results = await secureStorage.GetAsync(nameof(selectedGenre));
+        selectedGenre = results ?? "All";
+    }
+
+    private async Task SaveFilterState()
+    {
+        await secureStorage.SetAsync(nameof(selectedGenre), selectedGenre);
+    }
+
+    private async Task FilterMedias()
+    {
+        isFiltering = true;
+        var output = await mediaFileData.GetAllMediaFilesAsync();
+
+        if (selectedGenre != "All")
+        {
+            output = output.Where(g => g.Genre.GenreName == selectedGenre).ToList();
+        }
+
+        mediaFiles = output;
+        await SaveFilterState();
+        isFiltering = false;
+    }
+
+    private async Task OnGenreClick(string genre = "All")
+    {
+        selectedGenre = genre;
+        await FilterMedias();
+    }
+
+    private void LoadResults()
+    {
+        navManager.NavigateTo($"/results/{searchText}");
+    }
+
+    private void LoadMedia(MediaFileModel media)
+    {
+        navManager.NavigateTo($"MediaDetails/{media.Id}");
+    }
+
+    private string GetSelectedGenreClass(string genre)
+    {
+        if (selectedGenre == genre)
+        {
+            return "bg-white";
+        }
+
+        return "";
+    }
 }

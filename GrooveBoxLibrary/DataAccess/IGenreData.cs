@@ -2,6 +2,6 @@
 
 public interface IGenreData
 {
-    Task CreateCategoryAsync(GenreModel genre);
+    Task CreateGenreAsync(GenreModel genre);
     Task<List<GenreModel>> GetAllGenresAsync();
 }

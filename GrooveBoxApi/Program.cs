@@ -68,6 +68,36 @@ using (var serviceScope = app.Services.GetService<IServiceScopeFactory>().Create
     context.Database.EnsureCreated();
 }
 
+using (var serviceScope = app.Services.GetService<IServiceScopeFactory>().CreateScope())
+{
+    string roleName = "Admin";
+    var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    // Check if the role already exists
+    if (await roleManager.RoleExistsAsync(roleName) is false)
+    {
+        // Create a new role
+        var role = new IdentityRole(roleName);
+        var result = await roleManager.CreateAsync(role);
+
+        if (result.Succeeded)
+        {
+            // Role created successfully
+            // Handle any additional logic or return a success response
+        }
+        else
+        {
+            // Failed to create the role
+            // Handle the error or return an error response
+        }
+    }
+    else
+    {
+        // Role already exists
+        // Handle accordingly or return a response indicating the role already exists
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

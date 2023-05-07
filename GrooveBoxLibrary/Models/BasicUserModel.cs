@@ -17,4 +17,11 @@ public class BasicUserModel
         DisplayName = user.DisplayName;
         FileName = user.FileName;
     }
+
+    public BasicUserModel(ILoggedInUserModel user)
+    {
+        Id = user.Id;
+        DisplayName = user.DisplayName;
+        FileName = user.FileName;
+    }
 }
