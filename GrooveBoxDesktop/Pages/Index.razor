@@ -4,6 +4,56 @@
 @inject IGenreData genreData
 @inject NavigationManager navManager
 @inject ISecureStorageWrapper secureStorage
+@inject IJSRuntime JSRuntime
+
+<h1 class="page-heading mb-2">Discover</h1>
+
+<div class="row">
+    <div class="col-12">
+        @if (mediaFiles is not null && genres is not null)
+        {
+            <div class="row">
+                <Virtualize Items="genres" Context="g" OverscanCount="10">
+                    <div class="col-12">
+                        <h3 class="page-heading mb-2 custom-pointer d-inline-block width-auto" 
+                            @onclick="(() => LoadGenreMedia(g))">
+                            @g.GenreName
+                        </h3>
+                    </div>
+                    <Virtualize Items="GetGenreMedias(g)" Context="m" OverscanCount="10">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-2 p-3">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card custom-pointer" style="width: 12rem;">
+                                        <div class="overlay-container">
+                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                    class="card-img-top image-with-shadow rounded" 
+                                                    alt="@m.FileName" />
+                                            <div class="overlay"></div>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title truncated-title" 
+                                                data-fulltitle="@m.Title">
+                                                @GetTitleText(m)
+                                            </h6>
+                                            <p class="card-text">
+                                                <span class="oi oi-thumb-up"></span>
+                                                @GetUserVotesText(m)
+                                            </p>
+                                            <p class="card-text">
+                                                Made by: @m.Author.DisplayName
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Virtualize>
+                </Virtualize>
+            </div>
+        }
+    </div>
+</div>
 
 @code {
     private List<MediaFileModel> mediaFiles;
@@ -24,6 +74,7 @@
         {
             await LoadFilterState();
             await FilterMedias();
+            await JSRuntime.InvokeVoidAsync("initializeTooltips");
             StateHasChanged();
         }
     }
@@ -65,9 +116,34 @@
         navManager.NavigateTo($"/results/{searchText}");
     }
 
-    private void LoadMedia(MediaFileModel media)
+    private void LoadMediaPage(MediaFileModel media)
     {
         navManager.NavigateTo($"MediaDetails/{media.Id}");
+    }
+
+    private void LoadGenreMedia(GenreModel genre)
+    {
+        navManager.NavigateTo($"/{genre.GenreName}");
+    }
+
+    private string GetTitleText(MediaFileModel media)
+    {
+        return media.Title.Length > 20 ? $"{media.Title.Substring(0, 20)}..." : media.Title;
+    }
+
+    private string GetUserVotesText(MediaFileModel media)
+    {
+        if (media.UserVotes?.Count > 0)
+        {
+            return media.UserVotes.Count.ToString("00");
+        }
+
+        if (media.UserVotes?.Count == 0)
+        {
+            return "0";
+        }
+
+        return "N/A";
     }
 
     private string GetSelectedGenreClass(string genre)
@@ -78,5 +154,10 @@
         }
 
         return "";
+    }
+
+    private List<MediaFileModel> GetGenreMedias(GenreModel genre)
+    {
+        return mediaFiles.Where(m => m.Genre?.Id == genre.Id).Take(6).ToList();
     }
 }
