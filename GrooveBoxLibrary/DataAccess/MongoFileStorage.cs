@@ -26,20 +26,29 @@ public class MongoFileStorage : IFileStorage
         return await _gridFSBucket.UploadFromStreamAsync(fileName, fileStream, options);
     }
 
-    public Stream GetFile(string fileId)
-    {
-        var fileStream = new MemoryStream();
-        _gridFSBucket.DownloadToStream(new ObjectId(fileId), fileStream);
-        fileStream.Position = 0;
-        return fileStream;
-    }
-
-    public string CreateSourcePath(string fileId)
+    public string CreateSourcePathImage(string fileId)
     {
         var fileStream = GetFile(fileId);
         fileStream.Position = 0; // Reset the stream position to the beginning
         string base64Image = ConvertStreamToBase64(fileStream);
         return $"data:image/png;base64,{base64Image}";
+    }
+
+    public string CreateSourcePathVideo(string fileId)
+    {
+        var fileStream = GetFile(fileId);
+        fileStream.Position = 0; // Reset the stream position to the beginning
+        string base64Video = ConvertStreamToBase64(fileStream);
+        return $"data:video/mkv;base64,{base64Video}";
+    }
+
+    private Stream GetFile(string fileId)
+    {
+        var fileStream = new MemoryStream();
+
+        _gridFSBucket.DownloadToStream(new ObjectId(fileId), fileStream);
+        fileStream.Position = 0;
+        return fileStream;
     }
 
     private static string ConvertStreamToBase64(Stream stream)

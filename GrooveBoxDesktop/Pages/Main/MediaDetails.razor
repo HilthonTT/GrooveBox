@@ -1,0 +1,83 @@
+﻿@page "/MediaDetails/{Id}"
+@inject ILoggedInUserModel loggedInUser
+@inject IMediaFileData mediaFileData
+@inject IFileStorage fileStorage
+@inject NavigationManager navManager
+
+<h1 class="page-heading">@media?.Title</h1>
+
+@if (media is not null)
+{
+
+    <div class="ratio ratio-16x9">
+        <iframe src="@CreateSourcePath()" title="@media.Title" allowfullscreen></iframe>
+    </div>
+
+    <div class="ratio ratio-16x9">
+        <iframe src="https://www.youtube.com/watch?v=emMnQnjLpjY" title="@media.Title" allowfullscreen></iframe>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private MediaFileModel media;
+
+    protected override async Task OnInitializedAsync()
+    {
+        media = await mediaFileData.GetMediaFileAsync(Id);
+    }
+
+    private async Task VoteUp()
+    {
+        if (string.IsNullOrWhiteSpace(loggedInUser.Id))
+        {
+            navManager.NavigateTo("/Login");
+            return;
+        }
+
+        if (media.Author.Id == loggedInUser.Id)
+        {
+            // Can't vote your own media
+            return;
+        }
+
+        if (media.UserVotes.Add(loggedInUser.Id) is false)
+        {
+            media.UserVotes.Remove(loggedInUser.Id);
+        }
+
+        await mediaFileData.UpdateVoteMediaFileAsync(media.Id, loggedInUser.Id);
+    }
+
+    private string CreateSourcePath()
+    {
+        return fileStorage.CreateSourcePathVideo(media.FilePath);
+    }
+
+    private string GetUserVotesText()
+    {
+        if (media.UserVotes?.Count > 0)
+        {
+            return media.UserVotes.Count.ToString("00");
+        }
+
+        if (media.UserVotes?.Count == 0)
+        {
+            return "0";
+        }
+
+        return "N/A";
+    }
+
+    private string GetUserVotesBottomText()
+    {
+        if (media.UserVotes.Count > 1)
+        {
+            return "Upvotes";
+        }
+
+        return "Upvote";
+    }
+}

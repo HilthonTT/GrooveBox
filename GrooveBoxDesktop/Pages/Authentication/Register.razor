@@ -13,54 +13,69 @@
     </div>
 }
 
-<h1>Register</h1>
+<h1 class="page-heading mb-2">Register</h1>
 
-
-<div>
-    <div>
-        <div>
-            <div>
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-12">
+        <div class="row">
+            <div class="col-12">
                 <EditForm Model="user" OnValidSubmit="RegisterAsync">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
-                    <div>
-                        <label></label>
-                        <div></div>
-                        <InputText @bind-Value="user.FirstName" placeholder="First Name"/>
+                    <div class="mb-3">
+                        <label for="first-name" class="form-label">First Name</label>
+                        <div id="first-name-help" class="form-text">Enter your first name.</div>
+                        <InputText class="form-control" id="first-name" placeholder="First Name" 
+                         aria-describedby="first-name-help" @bind-Value="user.FirstName"/>
                     </div>
-                    <div>
-                        <label></label>
-                        <div></div>
-                        <InputText @bind-Value="user.LastName" placeholder="Last Name"/>
+                    <div class="mb-3">
+                        <label for="last-name" class="form-label">Last Name</label>
+                        <div id="last-name-help" class="form-text">Enter your last name.</div>
+                        <InputText class="form-control" id="last-name" placeholder="Last Name"
+                            aria-describedby="last-name-help" @bind-Value="user.LastName" />
                     </div>
-                    <div>
-                        <label></label>
-                        <div></div>
-                        <InputText @bind-Value="user.DisplayName" placeholder="Display Name"/>
+                    <div class="mb-3">
+                        <label for="display-name" class="form-label">Display Name</label>
+                        <div id="display-name-help" class="form-text">
+                            Enter your display name. It doesn't have to be your real name.
+                        </div>
+                        <InputText class="form-control" id="display-name" placeholder="Display Name"
+                            aria-describedby="display-name-help" @bind-Value="user.DisplayName" />
                     </div>
-                    <div>
-                        <label></label>
-                        <div></div>
-                        <InputText @bind-Value="user.EmailAddress" placeholder="Email Address"/>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div id="email-help" class="form-text">Enter your email address.</div>
+                        <InputText class="form-control" id="email" placeholder="Email"
+                            aria-describedby="email-help" @bind-Value="user.EmailAddress" />
                     </div>
-                    <div>
-                        <label></label>
-                        <div></div>
-                        <InputText @bind-Value="user.Password" placeholder="Password"/>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div id="password-help" class="form-text">
+                            Enter your password. It must contain a special character.
+                        </div>
+                        <InputText class="form-control" type="password" id="password" placeholder="At least 6 characters"
+                            aria-describedby="password-help" @bind-Value="user.Password" />
                     </div>
-                    <div>
-                        <label></label>
-                        <div></div>
-                        <InputText @bind-Value="user.ConfirmPassword" placeholder="Confirm Password"/>
+                    <div class="mb-3">
+                        <label for="confirm-password" class="form-label">Confirm Password</label>
+                        <div id="confirm-password-help" class="form-text">
+                            Repeat the password you've previously entered.
+                        </div>
+                        <InputText class="form-control" type="password" id="confirm-password" placeholder="Confirm Password"
+                            aria-describedby="confirm-password-help" @bind-Value="user.ConfirmPassword" />
                     </div>
-                    <div>
-                        <button class="btn btn-success" type="submit">
+                    <div class="center-children">
+                        <button class="btn btn-primary" type="submit">
                             Register
                         </button>
                     </div>
-                    <div>
-                        <label>Already have an account?</label>
-                        <button type="button" @onclick="LoadLoginPage">Login</button>
+                    <div class="center-children">
+                        <label class="form-label">Already have an account?</label>
+                    </div>
+                    <div class="center-children">
+                        <button type="button" class="btn btn-secondary" @onclick="LoadLoginPage">
+                            Login
+                        </button>
                     </div>
                 </EditForm>
             </div>

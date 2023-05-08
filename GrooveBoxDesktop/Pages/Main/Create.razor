@@ -9,6 +9,13 @@
 
 <h1 class="page-heading mb-2">Upload your media</h1>
 
+@if (isUploading)
+{
+    <div class="alert alert-warning" role="alert">
+        Remain patient, we are uploading your media!
+    </div>
+}
+
 <EditForm Model="media" OnValidSubmit="CreateMedia">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -32,7 +39,7 @@
                     <div class="mb-3">
                         <label for="media-title" class="form-label">Title</label>
                         <div id="title-help" class="form-text">How would you like to name your media?</div>
-                        <InputText class="form-control" id="media.title" 
+                        <InputText class="form-control" id="media-title" 
                         aria-describedby="title-help" @bind-Value="media.Title" />
                     </div>
                     <div class="mb-3">
@@ -45,7 +52,7 @@
                         <label for="media-file" class="form-label">Choose your file to upload.</label>
                         <div id="file-help" class="form-text">Select the file you would like to upload.</div>
                         <InputFile OnChange="LoadMediaFile" class="form-control" 
-                        accept="audio/*,video/*"/>
+                        accept="audio/*,video/*,.mkv"/>
                     </div>
                     <div class="mb-3">
                         <label for="media-type" class="form-label">Media Type</label>
@@ -72,7 +79,9 @@
                         }
                     </div>
                     <div class="center-children">
-                        <button type="submit" class="btn btn-primary">Upload</button>
+                        <button type="submit" class="btn btn-primary">
+                            Upload
+                        </button>
                     </div>
                 </div>
             </div>
@@ -88,6 +97,7 @@
     private long maxFileSizeMedia = 1024 * 1024 * 1000; // represents 1000MB
     private IBrowserFile thumbnailFile;
     private IBrowserFile mediaFile;
+    private bool isUploading = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,14 +127,24 @@
 
     private async Task CreateMedia()
     {
-        if (thumbnailFile?.Size > maxFileSizeThumbnail || mediaFile?.Size > maxFileSizeMedia)
+        isUploading = true;
+        if (mediaFile is null || mediaFile?.Size > maxFileSizeMedia || thumbnailFile?.Size > maxFileSizeThumbnail)
         {
+            // Handle null or oversized thumbnail file
             return;
         }
 
-        using var stream = thumbnailFile.OpenReadStream();
-        var thumbnailFileId = await fileStorage.StoreFileAsync(stream, thumbnailFile.Name);
-        var mediaFileId = await fileStorage.StoreFileAsync(stream, mediaFile.Name);
+        Stream thumbnailStream = thumbnailFile.OpenReadStream(maxFileSizeThumbnail);
+        var thumbnailFileId = await fileStorage.StoreFileAsync(thumbnailStream, thumbnailFile.Name);
+
+        if (thumbnailFile is null)
+        {
+            thumbnailStream.Dispose(); 
+            return;
+        }
+
+        Stream mediaStream = mediaFile.OpenReadStream(maxFileSizeMedia);
+        var mediaFileId = await fileStorage.StoreFileAsync(mediaStream, mediaFile.Name);
 
         MediaFileModel m = new()
         {
@@ -146,5 +166,6 @@
         await mediaFileData.CreateMediaFileAsync(m);
         media = new();
         ClosePage();
+        isUploading = false;
     }
 }

@@ -37,7 +37,7 @@
                         </a>
                     </div>
                     <Virtualize Items="GetGenreMedias(g)" Context="m" OverscanCount="10">
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2 m-1">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-2 m-1" @onclick="(() => LoadMediaPage(m))">
                             <div class="row">
                                 <div class="col-12">
                                     <div class="card custom-pointer" style="width: 12rem;">
@@ -157,7 +157,7 @@
 
     private string CreateSourcePath(string fileId)
     {
-        return fileStorage.CreateSourcePath(fileId);
+        return fileStorage.CreateSourcePathImage(fileId);
     }
 
     private List<MediaFileModel> GetGenreMedias(GenreModel genre)

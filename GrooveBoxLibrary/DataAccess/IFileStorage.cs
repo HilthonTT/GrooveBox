@@ -2,7 +2,7 @@
 
 public interface IFileStorage
 {
-    string CreateSourcePath(string path);
-    Stream GetFile(string fileId);
+    string CreateSourcePathImage(string path);
+    string CreateSourcePathVideo(string fileId);
     Task<ObjectId> StoreFileAsync(Stream fileStream, string fileName);
 }

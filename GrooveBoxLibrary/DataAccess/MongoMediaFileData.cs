@@ -45,6 +45,20 @@ public class MongoMediaFileData : IMediaFileData
         return output;
     }
 
+    public async Task<MediaFileModel> GetMediaFileAsync(string id)
+    {
+        var output = _cache.Get<MediaFileModel>(id);
+        if (output is null)
+        {
+            var results = await _mediaFiles.FindAsync(m => m.Id == id);
+            output = await results.FirstOrDefaultAsync();
+
+            _cache.Set(id, output, TimeSpan.FromMinutes(15));
+        }
+
+        return output;
+    }
+
     public async Task UpdateMediaFileAsync(MediaFileModel mediaFile)
     {
         await _mediaFiles.ReplaceOneAsync(m => m.Id == mediaFile.Id, mediaFile);

@@ -10,31 +10,41 @@
     </div>
 }
 
-<h1>Login</h1>
+<h1 class="page-heading mb-2">Login</h1>
 
-<div>
-    <div>
-        <div>
-            <div>
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-12">
+        <div class="row">
+            <div class="col-12">
                 <EditForm Model="user" OnValidSubmit="ExecuteLogin">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <div class="mb-3">
-                        <label class="form-label">Email Address</label>
-                        <div>Enter your email address to gain access to your account.</div>
-                        <InputText class="form-control" @bind-Value="user.Email" placeholder="Email Address"/>
+                        <label for="email" class="form-label">Email Address</label>
+                        <div id="email-help" class="form-text">
+                            Enter your email address to gain access to your account.
+                        </div>
+                        <InputText class="form-control" id="email" placeholder="Email"
+                            aria-describedby="email-help" @bind-Value="user.Email" />
                     </div>
-                    <div>
-                        <label class="form-label">Password</label>
-                        <div>Enter your password to gain access to your account.</div>
-                        <InputText type="password" class="form-control" @bind-Value="user.Password" placeholder="Password"/>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div id="password-help" class="form-text">
+                            Enter your password to gain access to your account.
+                        </div>
+                        <InputText class="form-control" type="password" id="password" placeholder="Password"
+                            aria-describedby="password-help" @bind-Value="user.Password" />
                     </div>
-                    <div>
-                        <button type="submit">Login</button>
+                    <div class="center-children">
+                        <button class="btn btn-primary" type="submit">Login</button>
                     </div>
-                    <div>
-                        <label>Don't have an account?</label>
-                        <button type="button" @onclick="LoadRegisterPage">Register</button>
+                    <div class="center-children">
+                        <label class="form-label">Don't have an account?</label>
+                    </div>
+                    <div class="center-children">
+                        <button type="button" class="btn btn-secondary" @onclick="LoadRegisterPage">
+                            Register
+                        </button>
                     </div>
                 </EditForm>
             </div>
