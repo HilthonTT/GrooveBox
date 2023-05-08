@@ -66,6 +66,8 @@
 
     private async Task CreateMediaFile()
     {
+        var rng = new Random();
+
         var genres = await genreData.GetAllGenresAsync();
         MediaFileModel m = new()
         {
@@ -73,7 +75,33 @@
             Description = "Go buy my merch guys!",
             MediaType = MediaType.Video,
             DateCreated = DateTime.UtcNow,
-            Genre = genres.FirstOrDefault(),
+            Genre = genres.OrderBy(g => rng.Next()).FirstOrDefault(),
+            Author = new BasicUserModel(loggedInUser),
+        };
+
+        await mediaFileData.CreateMediaFileAsync(m);
+
+        rng = new();
+        m = new()
+        {
+            Title = "Magic tutorial",
+            Description = "This will help me happy!",
+            MediaType = MediaType.Video,
+            DateCreated = DateTime.UtcNow,
+            Genre = genres.OrderBy(g => rng.Next()).FirstOrDefault(),
+            Author = new BasicUserModel(loggedInUser),
+        };
+
+        await mediaFileData.CreateMediaFileAsync(m);
+
+        rng = new();
+        m = new()
+        {
+            Title = "A Music Video",
+            Description = "This song slaps better than the belt!",
+            MediaType = MediaType.Audio,
+            DateCreated = DateTime.UtcNow,
+            Genre = genres.OrderBy(g => rng.Next()).FirstOrDefault(),
             Author = new BasicUserModel(loggedInUser),
         };
 

@@ -1,6 +1,5 @@
 ﻿using Blazored.LocalStorage;
 using GrooveBoxDesktop.Authentication;
-using GrooveBoxDesktop.Data;
 using GrooveBoxDesktop.Helpers;
 using GrooveBoxLibrary.API;
 using GrooveBoxLibrary.DataAccess;
@@ -22,8 +21,6 @@ public static class RegisterServices
         builder.Services.AddBlazorWebViewDeveloperTools();
         builder.Logging.AddDebug();
 #endif
-
-        builder.Services.AddSingleton<WeatherForecastService>();
 
         builder.Services.AddMemoryCache();
         builder.Services.AddBlazoredLocalStorage();
@@ -48,6 +45,7 @@ public static class RegisterServices
         builder.Services.AddSingleton<IUserData, MongoUserData>();
         builder.Services.AddSingleton<IGenreData, MongoGenreData>();
         builder.Services.AddSingleton<IMediaFileData, MongoMediaFileData>();
+        builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
     }
     private static IConfiguration AddConfiguration()
     {

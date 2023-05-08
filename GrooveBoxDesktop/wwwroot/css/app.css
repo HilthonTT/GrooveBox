@@ -119,3 +119,8 @@ a, .btn-link {
     right: 0;
     pointer-events: none;
 }
+
+.center-children {
+    display: flex;
+    justify-content: center;
+}

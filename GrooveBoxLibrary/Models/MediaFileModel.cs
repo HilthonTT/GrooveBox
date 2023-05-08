@@ -1,4 +1,8 @@
-﻿namespace GrooveBoxLibrary.Models;
+﻿using Newtonsoft.Json.Converters;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace GrooveBoxLibrary.Models;
 public class MediaFileModel
 {
     [BsonId]
@@ -6,9 +10,11 @@ public class MediaFileModel
     public string Id { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
+    public string ThumbnailPath { get; set; }
     public string FilePath { get; set; }
-    public string FileName { get; set; }
-    public long FileSize { get; set; }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    [BsonRepresentation(BsonType.String)]
     public MediaType MediaType { get; set; } = new();
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public GenreModel Genre { get; set; }
@@ -19,6 +25,9 @@ public class MediaFileModel
 
 public enum MediaType
 {
+    [Display(Name = "Audio")]
     Audio,
+
+    [Display(Name = "Video")]
     Video
 }

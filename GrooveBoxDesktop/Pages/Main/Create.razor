@@ -1,0 +1,150 @@
+﻿@page "/Create"
+@inject ILoggedInUserModel loggedInUser
+@inject IMediaFileData mediaFileData
+@inject IGenreData genreData
+@inject IFileStorage fileStorage
+@inject IJSRuntime JSInterop
+@inject NavigationManager navManager
+@attribute [Authorize]
+
+<h1 class="page-heading mb-2">Upload your media</h1>
+
+<EditForm Model="media" OnValidSubmit="CreateMedia">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-12">
+            <div class="row">
+                <div class="col-4">
+                    @if (string.IsNullOrWhiteSpace(thumbnailPath))
+                    {
+                        <img id="image-container" src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                        class="img-fluid rounded mx-auto d-block mb-2" alt="Stock Image" />
+                    }
+                    else
+                    {
+                         <img id="image-container" src="@thumbnailPath" 
+                            class="img-fluid rounded mx-auto d-block mb-2" alt="Selected Image" />
+                    }
+                    <InputFile OnChange="LoadThumbnailFile" class="form-control" accept="image/*"/>
+                </div>
+                <div class="col-8">
+                    <div class="mb-3">
+                        <label for="media-title" class="form-label">Title</label>
+                        <div id="title-help" class="form-text">How would you like to name your media?</div>
+                        <InputText class="form-control" id="media.title" 
+                        aria-describedby="title-help" @bind-Value="media.Title" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="media-description" class="form-label">Description</label>
+                        <div id="description-help" class="form-text">Describe your media, what does it contain?</div>
+                        <InputTextArea class="form-control" id="media-description" 
+                        aria-describedby="description-help" @bind-Value="media.Description"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="media-file" class="form-label">Choose your file to upload.</label>
+                        <div id="file-help" class="form-text">Select the file you would like to upload.</div>
+                        <InputFile OnChange="LoadMediaFile" class="form-control" 
+                        accept="audio/*,video/*"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="media-type" class="form-label">Media Type</label>
+                        <div class="form-text">Choose one media type.</div>
+                        <InputSelect class="form-select" aria-label="Media Type selection" @bind-Value="media.MediaType">
+                            <option selected>Select a media type...</option>
+                            @foreach (var m in Enum.GetValues(typeof(MediaType)))
+                            {
+                                <option value="@m">@m</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="mb-3">
+                        <label for="media-genre" class="form-label">Genres</label>
+                        <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
+                        @if (genres is not null)
+                        {
+                            <InputSelect class="form-select" aria-describedby="genre-help" @bind-Value="media.GenreId">
+                                @foreach (var g in genres)
+                                {
+                                    <option value="@g.Id">@g.GenreName</option>
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+                    <div class="center-children">
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private CreateMediaFileModel media = new();
+    private List<GenreModel> genres;
+    private string thumbnailPath = "";
+    private long maxFileSizeThumbnail = 1024 * 1024 * 5; // represents 5MB
+    private long maxFileSizeMedia = 1024 * 1024 * 1000; // represents 1000MB
+    private IBrowserFile thumbnailFile;
+    private IBrowserFile mediaFile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        genres = await genreData.GetAllGenresAsync();
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private async Task LoadThumbnailFile(InputFileChangeEventArgs e)
+    {
+        thumbnailFile = e.File;
+        using var stream = thumbnailFile.OpenReadStream(maxFileSizeThumbnail);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        byte[] bytes = memoryStream.ToArray();
+        string base64Image = $"data:{thumbnailFile.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        thumbnailPath = base64Image;
+    }
+
+    private void LoadMediaFile(InputFileChangeEventArgs e)
+    {
+        mediaFile = e.File;
+    }
+
+    private async Task CreateMedia()
+    {
+        if (thumbnailFile?.Size > maxFileSizeThumbnail || mediaFile?.Size > maxFileSizeMedia)
+        {
+            return;
+        }
+
+        using var stream = thumbnailFile.OpenReadStream();
+        var thumbnailFileId = await fileStorage.StoreFileAsync(stream, thumbnailFile.Name);
+        var mediaFileId = await fileStorage.StoreFileAsync(stream, mediaFile.Name);
+
+        MediaFileModel m = new()
+        {
+            Title = media.Title,
+            Description = media.Description,
+            ThumbnailPath = thumbnailFileId.ToString(),
+            FilePath = mediaFileId.ToString(),
+            MediaType = media.MediaType.Value,
+            Genre = genres.FirstOrDefault(g => g.Id == media.GenreId),
+            Author = new BasicUserModel(loggedInUser),
+        };
+
+        if (m.Genre is null)
+        {
+            media.GenreId = "";
+            return;
+        }
+
+        await mediaFileData.CreateMediaFileAsync(m);
+        media = new();
+        ClosePage();
+    }
+}

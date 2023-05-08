@@ -3,11 +3,11 @@
 @inject NavigationManager navManager
 
 <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
-    <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
         <span class="fs-4">Groove Box</span>
     </a>
-    <hr class="navbar-hr">
+    <hr class="navbar-hr" />
     <ul class="nav nav-pills flex-column mb-0">
         <li class="nav-item">
             <a href="/" class="nav-link active" aria-current="page">
@@ -91,7 +91,7 @@
         <strong>@loggedInUser.DisplayName</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="user-dropdown">
-        <li><a class="dropdown-item" href="/Studio">Studio</a></li>
+        <li><a class="dropdown-item" href="/Create">Upload Media</a></li>
         <li><a class="dropdown-item" href="/Settings">Settings</a></li>
         <li><a class="dropdown-item" href="/Profile">Profile</a></li>
         <li><hr class="dropdown-divider"></li>

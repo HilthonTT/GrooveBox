@@ -3,16 +3,16 @@ public class BasicMediaFileModel
 {
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
-    public string FileName { get; set; }
+    public string Title { get; set; }
 
     public BasicMediaFileModel()
     {
         
     }
 
-    public BasicMediaFileModel(MediaFileModel file)
+    public BasicMediaFileModel(MediaFileModel media)
     {
-        Id = file.Id;
-        FileName = file.FileName;
+        Id = media.Id;
+        Title = media.Title;
     }
 }
