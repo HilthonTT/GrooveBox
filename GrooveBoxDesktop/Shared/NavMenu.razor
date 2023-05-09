@@ -1,5 +1,5 @@
 ﻿@inject ILoggedInUserModel loggedInUser
-@inject IGenreData genreData
+@inject IGenreEndpoint genreEndpoint
 @inject NavigationManager navManager
 
 <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
@@ -117,7 +117,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        genres = await genreData.GetAllGenresAsync();
+        genres = await genreEndpoint.GetAllAsync();
     }
 
     private List<BasicUserModel> GetVisibleAuthors()

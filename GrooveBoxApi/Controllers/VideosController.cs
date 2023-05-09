@@ -24,7 +24,7 @@ public class VideosController : ControllerBase
         var files = await _gridFSBucket.FindAsync(new BsonDocument("_id", objectId));
         var file = await files.FirstOrDefaultAsync();
 
-        if (file != null)
+        if (file is not null)
         {
             // Generate a URL for accessing the video file
             var url = Url.Action("StreamVideo", "Videos", new { id = objectId.ToString() }, Request.Scheme);

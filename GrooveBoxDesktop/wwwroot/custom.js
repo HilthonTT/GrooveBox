@@ -4,11 +4,3 @@
         $(this).attr('title', fullTitle);
     });
 }
-
-myModal.addEventListener('shown.bs.modal', function () {
-    myInput.focus()
-})
-
-window.closeModal = function (modalId) {
-    $('#' + modalId).modal('hide');
-}

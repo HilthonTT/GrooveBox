@@ -37,15 +37,14 @@ public static class RegisterServices
         //Personal Services
         builder.Services.AddSingleton<IAPIHelper, APIHelper>();
         builder.Services.AddSingleton<IUserEndpoint, UserEndpoint>();
+        builder.Services.AddSingleton<IFileEndpoint, FileEndpoint>();
+        builder.Services.AddSingleton<IGenreEndpoint, GenreEndpoint>();
+        builder.Services.AddSingleton<IMediaFileEndpoint, MediaFileEndpoint>();
+        builder.Services.AddSingleton<IVideoEndpoint, VideoEndpoint>();
+
         builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
         builder.Services.AddSingleton<IOidGenerator, OidGenerator>();
         builder.Services.AddSingleton<ISecureStorageWrapper, SecureStorageWrapper>();
-
-        builder.Services.AddSingleton<IDbConnection, DbConnection>();
-        builder.Services.AddSingleton<IUserData, MongoUserData>();
-        builder.Services.AddSingleton<IGenreData, MongoGenreData>();
-        builder.Services.AddSingleton<IMediaFileData, MongoMediaFileData>();
-        builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
     }
     private static IConfiguration AddConfiguration()
     {

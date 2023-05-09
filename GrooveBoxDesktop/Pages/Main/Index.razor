@@ -1,8 +1,8 @@
 ﻿@page "/"
 @inject ILoggedInUserModel loggedInUser
-@inject IMediaFileData mediaFileData
-@inject IGenreData genreData
-@inject IFileStorage fileStorage
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject IGenreEndpoint genreEndpoint
+@inject IFileEndpoint fileEndpoint
 @inject ISecureStorageWrapper secureStorage
 @inject IJSRuntime JSInterop
 @inject NavigationManager navManager
@@ -45,7 +45,7 @@
                                             @if (string.IsNullOrWhiteSpace(m.ThumbnailPath) is false)
                                             {
                                                 <div class="text-center">
-                                                    <img src="@CreateSourcePath(m.ThumbnailPath)" 
+                                                    <img src="@m.ThumbnailPath" 
                                                      class="card-img-top image-with-shadow rounded"
                                                      style="width: 150px; height: 150px;"/>
                                                 </div>
@@ -90,8 +90,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        mediaFiles = await mediaFileData.GetAllMediaFilesAsync();
-        genres = await genreData.GetAllGenresAsync();
+        mediaFiles = await mediaFileEndpoint.GetAllAsync();
+        genres = await genreEndpoint.GetAllAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -153,11 +153,6 @@
         }
 
         return "";
-    }
-
-    private string CreateSourcePath(string fileId)
-    {
-        return fileStorage.CreateSourcePathImage(fileId);
     }
 
     private List<MediaFileModel> GetGenreMedias(GenreModel genre)

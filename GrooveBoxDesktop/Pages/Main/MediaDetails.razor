@@ -1,7 +1,7 @@
 ﻿@page "/MediaDetails/{Id}"
 @inject ILoggedInUserModel loggedInUser
-@inject IMediaFileData mediaFileData
-@inject IFileStorage fileStorage
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject IVideoEndpoint videoEndpoint
 @inject NavigationManager navManager
 
 @if (media is not null)
@@ -15,7 +15,7 @@
                 <div class="col-12">
                     <div class="text-center">
                         <video controls height="600" width="900">
-                            <source src="https://localhost:7066/api/Videos/stream/645a1fd16235d927582d37be" type="video/mp4">
+                            <source src="@GetVideoSource()" type="video/mp4">
                         </video>
                     </div>
                     <div class="card">
@@ -46,7 +46,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        media = await mediaFileData.GetMediaFileAsync(Id);
+        media = await mediaFileEndpoint.GetMediaFileAsync(Id);
     }
 
     private async Task VoteUp()
@@ -68,7 +68,18 @@
             media.UserVotes.Remove(loggedInUser.Id);
         }
 
-        await mediaFileData.UpdateVoteMediaFileAsync(media.Id, loggedInUser.Id);
+        await mediaFileEndpoint.UpdateVoteMediaFileAsync(media.Id, loggedInUser.Id);
+    }
+
+    private async Task<string> GetVideoSource()
+    {
+        string source = await videoEndpoint.GetVideoUrlAsync(media.FilePath);
+        if (string.IsNullOrWhiteSpace(source) is false)
+        {
+            return source;
+        }
+
+        return "";
     }
 
     private void ClosePage()
@@ -79,11 +90,6 @@
     private void LoadAuthorPage()
     {
         navManager.NavigateTo($"/UserDetails/{media.Author.Id}");
-    }
-
-    private string CreateSourcePath()
-    {
-        return fileStorage.CreateSourcePathVideo(media.FilePath);
     }
 
     private string GetVoteClass()

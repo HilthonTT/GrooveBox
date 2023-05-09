@@ -1,6 +1,5 @@
 ﻿@page "/Register"
 @inject IUserEndpoint userEndpoint
-@inject IUserData userData
 @inject IOidGenerator oidGenerator
 @inject IAuthenticationService authService
 @inject NavigationManager navManager
@@ -105,8 +104,7 @@
             };
             user.ObjectIdentifier = objectId;
 
-            await userEndpoint.CreateUserAsync(user);
-            await userData.CreateUserAsync(u);
+            await userEndpoint.CreateUserAsync(user);;
             AuthenticatedUserModel result = await authService.Login(new() { Email = user.EmailAddress, Password = user.Password });
             if (result is not null)
             {

@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using GrooveBoxLibrary.DataAccess;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -34,6 +35,7 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
 builder.Services.AddTransient<ISQLUserData, SQLUserData>();
+builder.Services.AddSingleton<IDbConnection, DbConnection>();
 builder.Services.AddSingleton<IGenreData, MongoGenreData>();
 builder.Services.AddSingleton<IUserData, MongoUserData>();
 builder.Services.AddSingleton<IMediaFileData, MongoMediaFileData>();
@@ -71,7 +73,6 @@ builder.Services.AddAuthentication(options =>
     });
 
 
-
 builder.Services.AddSwaggerGen(setup =>
 {
     setup.SwaggerDoc("v1", new OpenApiInfo
@@ -79,6 +80,11 @@ builder.Services.AddSwaggerGen(setup =>
         Title = "Groove Box API",
         Version = "v1",
     });
+});
+
+builder.Services.Configure<MvcOptions>(options =>
+{
+
 });
 
 var app = builder.Build();

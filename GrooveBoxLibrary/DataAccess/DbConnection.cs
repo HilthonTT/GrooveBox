@@ -20,7 +20,7 @@ public class DbConnection : IDbConnection
     {
         _config = config;
         Client = new MongoClient(_config.GetConnectionString(_connectionId));
-        DbName = _config["DatabaseName"];
+        DbName = _config.GetValue<string>("MongoDB:DatabaseName");
         _db = Client.GetDatabase(DbName);
 
         GenreCollection = _db.GetCollection<GenreModel>(GenreCollectionName);

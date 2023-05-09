@@ -1,6 +1,4 @@
-﻿using GrooveBoxDesktop.Attributes;
-using GrooveBoxLibrary.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace GrooveBoxDesktop.Models;
 public class CreateMediaFileModel
@@ -18,12 +16,4 @@ public class CreateMediaFileModel
     [Required(ErrorMessage = "The genre is required to upload your media.")]
     [MinLength(1)]
     public string GenreId { get; set; }
-
-    [RequiredEnum(ErrorMessage = "The media type is required to upload your media.")]
-    public MediaType? MediaType { get; set; } = new();
-
-    public bool IsMediaTypeSet()
-    {
-        return this.MediaType.HasValue;
-    }
 }

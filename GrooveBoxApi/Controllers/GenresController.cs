@@ -13,4 +13,16 @@ public class GenresController : ControllerBase
     {
         _genreData = genreData;
     }
+
+    [HttpGet]
+    public async Task<List<GenreModel>> GetGenresAsync()
+    {
+        return await _genreData.GetAllGenresAsync();
+    }
+
+    [HttpPost]
+    public async Task CreateGenreAsync(GenreModel genre)
+    {
+        await _genreData.CreateGenreAsync(genre);
+    }
 }

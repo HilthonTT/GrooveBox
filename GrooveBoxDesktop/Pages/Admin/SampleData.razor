@@ -1,7 +1,7 @@
 ﻿@page "/SampleData"
 @inject ILoggedInUserModel loggedInUser
-@inject IGenreData genreData
-@inject IMediaFileData mediaFileData
+@inject IGenreEndpoint genreEndpoint
+@inject IMediaFileEndpoint mediaFileEndpoint
 @inject IUserEndpoint userEndpoint
 @inject NavigationManager navManager
 @attribute [Authorize(Roles = "Admin")]
@@ -24,7 +24,7 @@
 
     private async Task CreateGenres()
     {
-        var genres = await genreData.GetAllGenresAsync();
+        var genres = await genreEndpoint.GetAllAsync();
         if (genres?.Count > 0)
         {
             return;
@@ -36,7 +36,7 @@
             GenreDescription = "Check out today's top talent by finding different artists!",
         };
 
-        await genreData.CreateGenreAsync(g);
+        await genreEndpoint.CreateGenreAsync(g);
 
         g = new()
         {
@@ -44,7 +44,7 @@
             GenreDescription = "Look at your favorite competitive gamers or play with them!",
         };
 
-        await genreData.CreateGenreAsync(g);
+        await genreEndpoint.CreateGenreAsync(g);
 
         g = new()
         {
@@ -52,7 +52,7 @@
             GenreDescription = "Get yourself informed on the latest information about today's world!",
         };
 
-        await genreData.CreateGenreAsync(g);
+        await genreEndpoint.CreateGenreAsync(g);
 
         g = new()
         {
@@ -60,7 +60,7 @@
             GenreDescription = "Watch the most impressive topics about your favorite sport!",
         };
 
-        await genreData.CreateGenreAsync(g);
+        await genreEndpoint.CreateGenreAsync(g);
         genresCreated = true;
     }
 
@@ -68,44 +68,41 @@
     {
         var rng = new Random();
 
-        var genres = await genreData.GetAllGenresAsync();
+        var genres = await genreEndpoint.GetAllAsync();
         MediaFileModel m = new()
         {
             Title = "Minecraft but this video is trash!",
             Description = "Go buy my merch guys!",
-            MediaType = MediaType.Video,
             DateCreated = DateTime.UtcNow,
             Genre = genres.OrderBy(g => rng.Next()).FirstOrDefault(),
             Author = new BasicUserModel(loggedInUser),
         };
 
-        await mediaFileData.CreateMediaFileAsync(m);
+        await mediaFileEndpoint.CreateMediaFileAsync(m);
 
         rng = new();
         m = new()
         {
             Title = "Magic tutorial",
             Description = "This will help me happy!",
-            MediaType = MediaType.Video,
             DateCreated = DateTime.UtcNow,
             Genre = genres.OrderBy(g => rng.Next()).FirstOrDefault(),
             Author = new BasicUserModel(loggedInUser),
         };
 
-        await mediaFileData.CreateMediaFileAsync(m);
+        await mediaFileEndpoint.CreateMediaFileAsync(m);
 
         rng = new();
         m = new()
         {
             Title = "A Music Video",
             Description = "This song slaps better than the belt!",
-            MediaType = MediaType.Audio,
             DateCreated = DateTime.UtcNow,
             Genre = genres.OrderBy(g => rng.Next()).FirstOrDefault(),
             Author = new BasicUserModel(loggedInUser),
         };
 
-        await mediaFileData.CreateMediaFileAsync(m);
+        await mediaFileEndpoint.CreateMediaFileAsync(m);
         mediaFileCreated = true;
     }
 }

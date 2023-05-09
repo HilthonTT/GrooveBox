@@ -1,6 +1,7 @@
 ﻿using GrooveBoxApi.Data;
 using GrooveBoxApi.DataAccess;
 using GrooveBoxApi.Models;
+using GrooveBoxLibrary.DataAccess;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,41 +11,50 @@ namespace GrooveBoxApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
 public class UserController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly ISQLUserData _userData;
+    private readonly ISQLUserData _SQLuserData;
+    private readonly IUserData _userData;
     private readonly ILogger<UserController> _logger;
 
     public UserController(ApplicationDbContext context,
                           UserManager<IdentityUser> userManager,
                           RoleManager<IdentityRole> roleManager,
-                          ISQLUserData userData,
+                          ISQLUserData SQLuserData,
+                          IUserData userData,
                           ILogger<UserController> logger)
     {
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
+        _SQLuserData = SQLuserData;
         _userData = userData;
         _logger = logger;
     }
 
     [HttpGet]
     [Route("GetMyId")]
-    public ApplicationUserModel GetMyId()
+    public async Task<ApplicationUserModel> GetMyId()
     {
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         
-        UserModel userModel = _userData.GetUserById(userId);
+        UserModel userModel = _SQLuserData.GetUserById(userId);
+        GrooveBoxLibrary.Models.UserModel mongoUser = await _userData.GetUserFromAuthenticationAsync(userModel.ObjectIdentifier);
 
         ApplicationUserModel user = new()
         {
             Id = userModel.Id,
             ObjectIdentifier = userModel.ObjectIdentifier,
-            DisplayName = userModel.DisplayName,
+            FirstName = userModel.FirstName,
+            LastName = userModel.LastName,
+            DisplayName = mongoUser.DisplayName,
+            EmailAddress = mongoUser.EmailAddress,
+            AuthoredFiles = mongoUser.AuthoredFiles,
+            VotedOnFiles = mongoUser.VotedOnFiles,
+            SubscribedAuthors = mongoUser.SubscribedAuthors,
         };
 
         var userRoles = from ur in _context.UserRoles
@@ -66,7 +76,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            UserModel userModel = _userData.GetUserById(Id.Id);
+            UserModel userModel = _SQLuserData.GetUserById(Id.Id);
 
             if (userModel is not null)
             {
@@ -102,7 +112,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            _userData.UpdateUser(user);
+            _SQLuserData.UpdateUser(user);
             var u = _context.Users.Where(x => x.Id == user.Id).First();
 
             u.Id = user.Id;
@@ -124,7 +134,8 @@ public class UserController : ControllerBase
         string LastName,
         string DisplayName,
         string EmailAddress,
-        string Password
+        string Password,
+        string fileName
     );
 
     [AllowAnonymous]
@@ -165,7 +176,20 @@ public class UserController : ControllerBase
                         EmailAddress = user.EmailAddress,
                     };
 
-                    _userData.InsertUser(u);
+                    _SQLuserData.InsertUser(u);
+
+                    var mongoUser = new GrooveBoxLibrary.Models.UserModel()
+                    {
+                        ObjectIdentifier = user.ObjectIdentifier,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        DisplayName = user.DisplayName,
+                        EmailAddress = user.EmailAddress,
+                        FileName = user.fileName,
+                    };
+
+                    await _userData.CreateUserAsync(mongoUser);
+
                     return Ok();
                 }
             }

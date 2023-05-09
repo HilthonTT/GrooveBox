@@ -1,8 +1,8 @@
 ﻿@page "/Create"
 @inject ILoggedInUserModel loggedInUser
-@inject IMediaFileData mediaFileData
-@inject IGenreData genreData
-@inject IFileStorage fileStorage
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject IGenreEndpoint genreEndpoint
+@inject IFileEndpoint fileEndpoint
 @inject IJSRuntime JSInterop
 @inject NavigationManager navManager
 @attribute [Authorize]
@@ -12,7 +12,7 @@
 @if (isUploading)
 {
     <div class="alert alert-warning" role="alert">
-        Remain patient, we are uploading your media!
+        Remain patient, we are uploading your media! Do not leave the page.
     </div>
 }
 
@@ -55,17 +55,6 @@
                         accept="audio/*,video/*,.mkv"/>
                     </div>
                     <div class="mb-3">
-                        <label for="media-type" class="form-label">Media Type</label>
-                        <div class="form-text">Choose one media type.</div>
-                        <InputSelect class="form-select" aria-label="Media Type selection" @bind-Value="media.MediaType">
-                            <option selected>Select a media type...</option>
-                            @foreach (var m in Enum.GetValues(typeof(MediaType)))
-                            {
-                                <option value="@m">@m</option>
-                            }
-                        </InputSelect>
-                    </div>
-                    <div class="mb-3">
                         <label for="media-genre" class="form-label">Genres</label>
                         <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
                         @if (genres is not null)
@@ -101,7 +90,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        genres = await genreData.GetAllGenresAsync();
+        genres = await genreEndpoint.GetAllAsync();
     }
 
     private void ClosePage()
@@ -134,25 +123,28 @@
             return;
         }
 
-        Stream thumbnailStream = thumbnailFile.OpenReadStream(maxFileSizeThumbnail);
-        var thumbnailFileId = await fileStorage.StoreFileAsync(thumbnailStream, thumbnailFile.Name);
+        using Stream thumbnailStream = thumbnailFile.OpenReadStream(maxFileSizeThumbnail);
+        var thumbnailModel = new FileUploadModel(thumbnailStream, thumbnailFile.Name);
+        var thumbnailFileId = await fileEndpoint.StoreFileAsync(thumbnailModel);
+        string thumbnailPath = await fileEndpoint.GetSourcePathAsync(thumbnailFileId.ToString());
 
         if (thumbnailFile is null)
         {
-            thumbnailStream.Dispose(); 
+            thumbnailModel.Dispose();
             return;
         }
 
-        Stream mediaStream = mediaFile.OpenReadStream(maxFileSizeMedia);
-        var mediaFileId = await fileStorage.StoreFileAsync(mediaStream, mediaFile.Name);
+        using Stream mediaStream = mediaFile.OpenReadStream(maxFileSizeMedia);
+        var mediaModel = new FileUploadModel(mediaStream, mediaFile.Name);
+        var mediaFileId = await fileEndpoint.StoreFileAsync(mediaModel);
+        string mediaPath = await fileEndpoint.GetSourcePathAsync(mediaFileId.ToString());
 
         MediaFileModel m = new()
         {
             Title = media.Title,
             Description = media.Description,
-            ThumbnailPath = thumbnailFileId.ToString(),
-            FilePath = mediaFileId.ToString(),
-            MediaType = media.MediaType.Value,
+            ThumbnailPath = thumbnailPath,
+            FilePath = mediaPath,
             Genre = genres.FirstOrDefault(g => g.Id == media.GenreId),
             Author = new BasicUserModel(loggedInUser),
         };
@@ -163,9 +155,13 @@
             return;
         }
 
-        await mediaFileData.CreateMediaFileAsync(m);
+        await mediaFileEndpoint.CreateMediaFileAsync(m);
         media = new();
         ClosePage();
         isUploading = false;
+
+        // Dispose the FileUploadModel instances
+        thumbnailModel.Dispose();
+        mediaModel.Dispose();
     }
 }

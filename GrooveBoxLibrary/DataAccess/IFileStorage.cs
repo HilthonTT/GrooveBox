@@ -2,7 +2,6 @@
 
 public interface IFileStorage
 {
-    string CreateSourcePathImage(string path);
-    string CreateSourcePathVideo(string fileId);
+    Task<string> CreateSourcePath(string path);
     Task<ObjectId> StoreFileAsync(Stream fileStream, string fileName);
 }

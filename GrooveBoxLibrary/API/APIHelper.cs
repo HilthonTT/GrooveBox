@@ -6,16 +6,13 @@ public class APIHelper : IAPIHelper
 {
     private readonly ILoggedInUserModel _loggedInUser;
     private readonly IConfiguration _config;
-    private readonly IUserData _userData;
     private HttpClient _apiClient;
 
     public APIHelper(ILoggedInUserModel loggedInUser,
-                     IConfiguration config,
-                     IUserData userData)
+                     IConfiguration config)
     {
         _loggedInUser = loggedInUser;
         _config = config;
-        _userData = userData;
         InitializeClient();
     }
 
@@ -73,20 +70,19 @@ public class APIHelper : IAPIHelper
         using HttpResponseMessage response = await _apiClient.GetAsync("/api/user/GetMyId");
         if (response.IsSuccessStatusCode)
         {
-            var responseResult = await response.Content.ReadAsAsync<LoggedInUserModel>();
-            var dbResult = await _userData.GetUserFromAuthenticationAsync(responseResult.ObjectIdentifier);
+            var result = await response.Content.ReadAsAsync<LoggedInUserModel>();
 
-            _loggedInUser.Id = dbResult.Id;
-            _loggedInUser.ObjectIdentifier = responseResult.ObjectIdentifier;
-            _loggedInUser.FileName = dbResult.FileName;
-            _loggedInUser.FirstName = dbResult.FirstName;
-            _loggedInUser.LastName = dbResult.LastName;
-            _loggedInUser.DisplayName = dbResult.DisplayName;
-            _loggedInUser.EmailAddress = dbResult.EmailAddress;
-            _loggedInUser.Roles = responseResult.Roles;
-            _loggedInUser.AuthoredFiles = dbResult.AuthoredFiles;
-            _loggedInUser.VotedOnFiles = dbResult.VotedOnFiles;
-            _loggedInUser.SubscribedAuthors = dbResult.SubscribedAuthors;
+            _loggedInUser.Id = result.Id;
+            _loggedInUser.ObjectIdentifier = result.ObjectIdentifier;
+            _loggedInUser.FileName = result.FileName;
+            _loggedInUser.FirstName = result.FirstName;
+            _loggedInUser.LastName = result.LastName;
+            _loggedInUser.DisplayName = result.DisplayName;
+            _loggedInUser.EmailAddress = result.EmailAddress;
+            _loggedInUser.Roles = result.Roles;
+            _loggedInUser.AuthoredFiles = result.AuthoredFiles;
+            _loggedInUser.VotedOnFiles = result.VotedOnFiles;
+            _loggedInUser.SubscribedAuthors = result.SubscribedAuthors;
             _loggedInUser.Token = token;
         }
         else

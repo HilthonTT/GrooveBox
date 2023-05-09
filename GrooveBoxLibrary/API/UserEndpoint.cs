@@ -35,10 +35,11 @@ public class UserEndpoint : IUserEndpoint
             user.LastName,
             user.DisplayName,
             user.EmailAddress,
-            user.Password
+            user.Password,
+            user.FileName,
         };
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Register", data);
+        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Register", user);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("User successfully been created.");
