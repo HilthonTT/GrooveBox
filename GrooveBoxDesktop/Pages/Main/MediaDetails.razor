@@ -4,18 +4,38 @@
 @inject IFileStorage fileStorage
 @inject NavigationManager navManager
 
-<h1 class="page-heading">@media?.Title</h1>
-
 @if (media is not null)
 {
-
-    <div class="ratio ratio-16x9">
-        <iframe src="@CreateSourcePath()" title="@media.Title" allowfullscreen></iframe>
-    </div>
-
-    <div class="ratio ratio-16x9">
-        <iframe src="https://www.youtube.com/watch?v=emMnQnjLpjY" title="@media.Title" allowfullscreen></iframe>
-    </div>
+   <div class="row p-1">
+       <div class="col-xl-10 col-lg-12">
+            <div class="row">
+                <div class="close-button-section">
+                    <button class="btn btn-close" @onclick="ClosePage"></button>
+                </div>
+                <div class="col-12">
+                    <div class="text-center">
+                        <video controls height="600" width="900">
+                            <source src="https://localhost:7066/api/Videos/stream/645a1fd16235d927582d37be" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="card">
+                        <div class="author">
+                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                alt="Author Profile Picture">
+                            <span class="custom-pointer" @onclick="LoadAuthorPage">@media.Author.DisplayName</span>
+                        </div>
+                        <div class="like-button" @onclick="VoteUp">
+                            <div class="text-uppercase">@GetUserVotesText()</div>
+                            <i class="oi oi-thumb-up"></i>
+                           <div class="text-uppercase"> @GetUserVotesBottomText()</div>
+                        </div>
+                        <h1 class="title">@media.Title</h1>
+                        <p class="description">@media.Description</p>
+                    </div>
+                </div>
+            </div>
+       </div>
+   </div>
 }
 
 @code {
@@ -51,9 +71,34 @@
         await mediaFileData.UpdateVoteMediaFileAsync(media.Id, loggedInUser.Id);
     }
 
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private void LoadAuthorPage()
+    {
+        navManager.NavigateTo($"/UserDetails/{media.Author.Id}");
+    }
+
     private string CreateSourcePath()
     {
         return fileStorage.CreateSourcePathVideo(media.FilePath);
+    }
+
+    private string GetVoteClass()
+    {
+        if (media.UserVotes is null || media.UserVotes.Count == 0)
+        {
+            return "bg-success";
+        }
+
+        if (media.UserVotes.Contains(loggedInUser.Id))
+        {
+            return "bg-danger";
+        }
+
+        return "bg-success";
     }
 
     private string GetUserVotesText()

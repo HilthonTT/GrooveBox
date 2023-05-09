@@ -1,7 +1,7 @@
 ﻿using GrooveBoxApi.Models;
 
 namespace GrooveBoxApi.DataAccess;
-public interface IUserData
+public interface ISQLUserData
 {
     UserModel GetUserById(string id);
     UserModel GetUserByObjectId(string objectId);

@@ -16,13 +16,13 @@ public class UserController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly IUserData _userData;
+    private readonly ISQLUserData _userData;
     private readonly ILogger<UserController> _logger;
 
     public UserController(ApplicationDbContext context,
                           UserManager<IdentityUser> userManager,
                           RoleManager<IdentityRole> roleManager,
-                          IUserData userData,
+                          ISQLUserData userData,
                           ILogger<UserController> logger)
     {
         _context = context;

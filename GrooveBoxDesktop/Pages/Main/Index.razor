@@ -165,6 +165,6 @@
         var random = new Random();
         return mediaFiles.Where(m => m.Genre?.Id == genre.Id)
             .OrderBy(m => random.Next())
-            .Take(6).ToList();
+            .Take(5).ToList();
     }
 }

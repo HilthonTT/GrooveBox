@@ -2,12 +2,12 @@
 
 namespace GrooveBoxApi.DataAccess;
 
-public class UserData : IUserData
+public class SQLUserData : ISQLUserData
 {
     private readonly ISqlDataAccess _sql;
     private const string DataBaseName = "GrooveBoxData";
 
-    public UserData(ISqlDataAccess sql)
+    public SQLUserData(ISqlDataAccess sql)
     {
         _sql = sql;
     }

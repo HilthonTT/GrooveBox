@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
+using GrooveBoxLibrary.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -28,8 +30,27 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
-builder.Services.AddTransient<IUserData, UserData>();
+builder.Services.AddTransient<ISQLUserData, SQLUserData>();
+builder.Services.AddSingleton<IGenreData, MongoGenreData>();
+builder.Services.AddSingleton<IUserData, MongoUserData>();
+builder.Services.AddSingleton<IMediaFileData, MongoMediaFileData>();
+builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
+
+builder.Services.AddSingleton<IMongoClient>(provider =>
+{
+    var connectionString = config.GetConnectionString("MongoDB");
+    return new MongoClient(connectionString);
+});
+
+builder.Services.AddScoped(provider =>
+{
+    var mongoClient = provider.GetRequiredService<IMongoClient>();
+    var databaseName = config.GetValue<string>("MongoDB:DatabaseName");
+    return mongoClient.GetDatabase(databaseName);
+});
 
 builder.Services.AddAuthentication(options =>
 {
