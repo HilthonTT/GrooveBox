@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using GrooveBoxLibrary.DataAccess;
 using Microsoft.AspNetCore.Mvc;
+using GrooveBoxLibrary.API;
+using GrooveBoxLibrary.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -39,7 +41,6 @@ builder.Services.AddSingleton<IDbConnection, DbConnection>();
 builder.Services.AddSingleton<IGenreData, MongoGenreData>();
 builder.Services.AddSingleton<IUserData, MongoUserData>();
 builder.Services.AddSingleton<IMediaFileData, MongoMediaFileData>();
-builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
 
 builder.Services.AddSingleton<IMongoClient>(provider =>
 {

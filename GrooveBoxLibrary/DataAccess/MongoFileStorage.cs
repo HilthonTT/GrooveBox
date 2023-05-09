@@ -5,10 +5,12 @@ public class MongoFileStorage : IFileStorage
 {
     private readonly GridFSBucket _gridFSBucket;
     private readonly IDbConnection _db;
+    private readonly IMemoryCache _cache;
 
-    public MongoFileStorage(IDbConnection db)
+    public MongoFileStorage(IDbConnection db, IMemoryCache cache)
     {
         _db = db;
+        _cache = cache;
         _gridFSBucket = new GridFSBucket(_db.Client.GetDatabase(_db.DbName));
     }
 
@@ -28,16 +30,23 @@ public class MongoFileStorage : IFileStorage
 
     public async Task<string> CreateSourcePath(string fileId)
     {
-        var fileStream = await GetFileAsync(fileId);
-        fileStream.Position = 0; // Reset the stream position to the beginning
-        string base64Image = await ConvertStreamToBase64(fileStream);
-        return $"data:image/png;base64,{base64Image}";
+        string output = _cache.Get<string>(fileId);
+        if (output is null)
+        {
+            var fileStream = await GetFileAsync(fileId);
+            fileStream.Position = 0; // Reset the stream position to the beginning
+            string base64Image = await ConvertStreamToBase64(fileStream);
+            output =  $"data:image/png;base64,{base64Image}";
+
+            _cache.Set(fileId, output, TimeSpan.FromHours(1));
+        }
+
+        return output;
     }
 
     private async Task<Stream> GetFileAsync(string fileId)
     {
         var fileStream = new MemoryStream();
-
         await _gridFSBucket.DownloadToStreamAsync(new ObjectId(fileId), fileStream);
         fileStream.Position = 0;
         return fileStream;

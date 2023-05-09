@@ -1,0 +1,85 @@
+﻿@using GrooveBoxLibrary.DataAccess;
+@inject NavigationManager navManager
+@inject IFileStorage fileStorage
+
+<div class="col-12 col-sm-6 col-md-4 col-lg-2 m-1" @onclick="(() => LoadMediaPage(Media))">
+    <div class="row">
+        <div class="col-12">
+            <div class="card custom-pointer" style="width: 12rem;">
+                <div class="overlay-container">
+                    @if (string.IsNullOrWhiteSpace(sourcePath) is false)
+                    {
+                        <div class="text-center">
+                            <img src="@sourcePath" 
+                                class="card-img-top image-with-shadow rounded"
+                                style="width: 150px; height: 150px;"/>
+                        </div>
+                    }
+                    else
+                    {
+                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                class="card-img-top image-with-shadow rounded" 
+                                alt="No Image Available" />
+                    }
+                    <div class="overlay"></div>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title truncated-title text-break" 
+                        data-fulltitle="@Media.Title">
+                        @GetTitleText(Media)
+                    </h6>
+                    <p class="card-text">
+                        <span class="oi oi-thumb-up"></span>
+                        @GetUserVotesText(Media)
+                    </p>
+                    <p class="card-text">
+                        Made by: @Media.Author.DisplayName
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public MediaFileModel Media { get; set; }
+
+    private string sourcePath = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        sourcePath = await fileStorage.CreateSourcePath(Media.ThumbnailPath);
+    }
+
+    private void LoadMediaPage(MediaFileModel media)
+    {
+        navManager.NavigateTo($"MediaDetails/{media.Id}");
+    }
+
+    private void LoadGenreMedia(GenreModel genre)
+    {
+        navManager.NavigateTo($"/{genre.GenreName}");
+    }
+
+    private string GetTitleText(MediaFileModel media)
+    {
+        return media.Title.Length > 30 ? $"{media.Title.Substring(0, 30)}..." : media.Title;
+    }
+
+    private string GetUserVotesText(MediaFileModel media)
+    {
+        if (media.UserVotes?.Count > 0)
+        {
+            return media.UserVotes.Count.ToString("00");
+        }
+
+        if (media.UserVotes?.Count == 0)
+        {
+            return "0";
+        }
+
+        return "N/A";
+    }
+}

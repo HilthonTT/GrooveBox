@@ -46,10 +46,10 @@ public class UserController : ControllerBase
 
         ApplicationUserModel user = new()
         {
-            Id = userModel.Id,
-            ObjectIdentifier = userModel.ObjectIdentifier,
-            FirstName = userModel.FirstName,
-            LastName = userModel.LastName,
+            Id = mongoUser.Id,
+            ObjectIdentifier = mongoUser.ObjectIdentifier,
+            FirstName = mongoUser.FirstName,
+            LastName = mongoUser.LastName,
             DisplayName = mongoUser.DisplayName,
             EmailAddress = mongoUser.EmailAddress,
             AuthoredFiles = mongoUser.AuthoredFiles,

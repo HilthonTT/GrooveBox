@@ -1,6 +1,4 @@
-﻿using MongoDB.Driver;
-
-namespace GrooveBoxLibrary.DataAccess;
+﻿namespace GrooveBoxLibrary.DataAccess;
 public class MongoUserData : IUserData
 {
     private readonly IMongoCollection<UserModel> _users;

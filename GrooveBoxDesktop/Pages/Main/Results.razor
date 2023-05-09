@@ -1,0 +1,72 @@
+﻿@page "/Results/{SearchText}"
+@using GrooveBoxLibrary.DataAccess;
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject ILoggedInUserModel loggedInUser
+@inject IFileStorage fileStorage
+@inject ISecureStorageWrapper secureStorage
+@inject IJSRuntime JSInterop
+@inject NavigationManager navManager
+
+<h1 class="page-heading mb-2">Discover</h1>
+
+<div class="row">
+    <div class="col-12">
+        <div class="input-group mb-3">
+          <input @bind-value="SearchText" 
+                type="text" class="form-control" placeholder="Search" 
+                aria-label="Search" aria-describedby="search-button"/>
+          <button class="btn btn-outline-secondary" type="button" 
+                  id="search-button" @onclick="LoadResults">
+              Search
+          </button>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">    
+        <div class="row">
+            @if (mediaFiles?.Count > 0)
+            {
+                <Virtualize Items="mediaFiles" Context="m" OverscanCount="10">
+                    <MediaComponent @key="m.Id" Media="m"/>
+                </Virtualize>
+            }
+            else
+            {
+                <div class="alert alert-warning" role="alert">
+                  <h4 class="alert-heading">No Results Found.</h4>
+                  <p>There was unfortunately no results with your search.</p>
+                  <hr>
+                  <p class="mb-0">Please try again by searching something else.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string SearchText { get; set; }
+
+    private List<MediaFileModel> mediaFiles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        mediaFiles = await mediaFileEndpoint.GetAllAsync();
+        mediaFiles = mediaFiles.Where(m => m.Title.Contains(
+            SearchText, StringComparison.InvariantCultureIgnoreCase) ||
+            m.Description.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    private void LoadResults()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            navManager.NavigateTo($"/");
+        }
+        else
+        {
+            navManager.NavigateTo($"/results/{SearchText}", true);
+        }
+    }
+}

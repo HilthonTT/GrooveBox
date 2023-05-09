@@ -1,8 +1,9 @@
 ﻿@page "/"
+@using GrooveBoxLibrary.DataAccess;
 @inject ILoggedInUserModel loggedInUser
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject IGenreEndpoint genreEndpoint
-@inject IFileEndpoint fileEndpoint
+@inject IFileStorage fileStorage
 @inject ISecureStorageWrapper secureStorage
 @inject IJSRuntime JSInterop
 @inject NavigationManager navManager
@@ -15,7 +16,8 @@
           <input @bind-value="searchText" 
                 type="text" class="form-control" placeholder="Search" 
                 aria-label="Search" aria-describedby="search-button"/>
-          <button class="btn btn-outline-secondary" type="button" id="search-button" @onclick="LoadResults">
+          <button class="btn btn-outline-secondary" type="button" 
+                  id="search-button" @onclick="LoadResults">
               Search
           </button>
         </div>
@@ -37,44 +39,7 @@
                         </a>
                     </div>
                     <Virtualize Items="GetGenreMedias(g)" Context="m" OverscanCount="10">
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2 m-1" @onclick="(() => LoadMediaPage(m))">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card custom-pointer" style="width: 12rem;">
-                                        <div class="overlay-container">
-                                            @if (string.IsNullOrWhiteSpace(m.ThumbnailPath) is false)
-                                            {
-                                                <div class="text-center">
-                                                    <img src="@m.ThumbnailPath" 
-                                                     class="card-img-top image-with-shadow rounded"
-                                                     style="width: 150px; height: 150px;"/>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                     class="card-img-top image-with-shadow rounded" 
-                                                     alt="No Image Available" />
-                                            }
-                                            <div class="overlay"></div>
-                                        </div>
-                                        <div class="card-body">
-                                            <h6 class="card-title truncated-title text-break" 
-                                                data-fulltitle="@m.Title">
-                                                @GetTitleText(m)
-                                            </h6>
-                                            <p class="card-text">
-                                                <span class="oi oi-thumb-up"></span>
-                                                @GetUserVotesText(m)
-                                            </p>
-                                            <p class="card-text">
-                                                Made by: @m.Author.DisplayName
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <MediaComponent @key="m.Id" Media="m"/>
                     </Virtualize>
                 </Virtualize>
             }
@@ -115,34 +80,9 @@
         }
     }
 
-    private void LoadMediaPage(MediaFileModel media)
-    {
-        navManager.NavigateTo($"MediaDetails/{media.Id}");
-    }
-
     private void LoadGenreMedia(GenreModel genre)
     {
         navManager.NavigateTo($"/{genre.GenreName}");
-    }
-
-    private string GetTitleText(MediaFileModel media)
-    {
-        return media.Title.Length > 30 ? $"{media.Title.Substring(0, 30)}..." : media.Title;
-    }
-
-    private string GetUserVotesText(MediaFileModel media)
-    {
-        if (media.UserVotes?.Count > 0)
-        {
-            return media.UserVotes.Count.ToString("00");
-        }
-
-        if (media.UserVotes?.Count == 0)
-        {
-            return "0";
-        }
-
-        return "N/A";
     }
 
     private string GetSelectedGenreClass(string genre)

@@ -37,10 +37,11 @@ public static class RegisterServices
         //Personal Services
         builder.Services.AddSingleton<IAPIHelper, APIHelper>();
         builder.Services.AddSingleton<IUserEndpoint, UserEndpoint>();
-        builder.Services.AddSingleton<IFileEndpoint, FileEndpoint>();
+        builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
         builder.Services.AddSingleton<IGenreEndpoint, GenreEndpoint>();
         builder.Services.AddSingleton<IMediaFileEndpoint, MediaFileEndpoint>();
         builder.Services.AddSingleton<IVideoEndpoint, VideoEndpoint>();
+        builder.Services.AddSingleton<IDbConnection, DbConnection>();
 
         builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
         builder.Services.AddSingleton<IOidGenerator, OidGenerator>();
@@ -51,7 +52,6 @@ public static class RegisterServices
         string configFilePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
         IConfigurationBuilder builder = new ConfigurationBuilder()
             .AddJsonFile(configFilePath, optional: false, reloadOnChange: true);
-
 
         return builder.Build();
     }

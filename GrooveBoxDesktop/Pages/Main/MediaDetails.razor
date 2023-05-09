@@ -13,11 +13,14 @@
                     <button class="btn btn-close" @onclick="ClosePage"></button>
                 </div>
                 <div class="col-12">
-                    <div class="text-center">
-                        <video controls height="600" width="900">
-                            <source src="@GetVideoSource()" type="video/mp4">
-                        </video>
-                    </div>
+                    @if (string.IsNullOrWhiteSpace(videoSource) is false)
+                    {
+                        <div class="text-center">
+                            <video controls height="600" width="900">
+                                <source src="@videoSource" type="video/mp4">
+                            </video>
+                        </div>
+                    }
                     <div class="card">
                         <div class="author">
                             <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
@@ -26,9 +29,12 @@
                         </div>
                         <div class="like-button" @onclick="VoteUp">
                             <div class="text-uppercase">@GetUserVotesText()</div>
-                            <i class="oi oi-thumb-up"></i>
+                            <i class="oi @GetVoteClass()"></i>
                            <div class="text-uppercase"> @GetUserVotesBottomText()</div>
                         </div>
+                        <button class="btn @GetVoteClass()" @onclick="VoteUp">
+                            @GetUserVotesText()<i class="oi oi-thumb-up mx-1"></i>
+                        </button>
                         <h1 class="title">@media.Title</h1>
                         <p class="description">@media.Description</p>
                     </div>
@@ -43,32 +49,13 @@
     public string Id { get; set; }
 
     private MediaFileModel media;
+    private string videoSource;
+    private bool isBusy = false;
 
     protected override async Task OnInitializedAsync()
     {
         media = await mediaFileEndpoint.GetMediaFileAsync(Id);
-    }
-
-    private async Task VoteUp()
-    {
-        if (string.IsNullOrWhiteSpace(loggedInUser.Id))
-        {
-            navManager.NavigateTo("/Login");
-            return;
-        }
-
-        if (media.Author.Id == loggedInUser.Id)
-        {
-            // Can't vote your own media
-            return;
-        }
-
-        if (media.UserVotes.Add(loggedInUser.Id) is false)
-        {
-            media.UserVotes.Remove(loggedInUser.Id);
-        }
-
-        await mediaFileEndpoint.UpdateVoteMediaFileAsync(media.Id, loggedInUser.Id);
+        videoSource = await GetVideoSource();
     }
 
     private async Task<string> GetVideoSource()
@@ -80,6 +67,29 @@
         }
 
         return "";
+    }
+
+    private async Task VoteUp()
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        isBusy = true;
+        if (string.IsNullOrWhiteSpace(loggedInUser.Id))
+        {
+            navManager.NavigateTo("/Login");
+            return;
+        }
+
+        if (media.UserVotes.Add(loggedInUser.Id) is false)
+        {
+            media.UserVotes.Remove(loggedInUser.Id);
+        }
+
+        await mediaFileEndpoint.UpdateVoteMediaFileAsync(media.Id, loggedInUser.Id);
+        isBusy = false;
     }
 
     private void ClosePage()
@@ -96,15 +106,25 @@
     {
         if (media.UserVotes is null || media.UserVotes.Count == 0)
         {
-            return "bg-success";
+            return "oi-thumb-up text-success";
         }
 
         if (media.UserVotes.Contains(loggedInUser.Id))
         {
-            return "bg-danger";
+            return "oi-thumb-down text-danger";
         }
 
-        return "bg-success";
+        return "oi-thumb-up text-success";
+    }
+
+    private string GetLikeDislikeClass(bool isLike)
+    {
+        if (media.UserVotes.Contains(loggedInUser?.Id) == isLike)
+        {
+            return "btn-secondary";
+        }
+
+        return "btn-outline-secondary";
     }
 
     private string GetUserVotesText()

@@ -181,6 +181,7 @@ a, .btn-link {
     align-items: center;
     gap: 5px;
     margin-bottom: 10px;
+    cursor: pointer;
 }
 
     .like-button i {
