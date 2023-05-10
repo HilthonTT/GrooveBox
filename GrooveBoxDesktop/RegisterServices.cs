@@ -7,6 +7,7 @@ using GrooveBoxLibrary.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace GrooveBoxDesktop;
 
@@ -42,6 +43,9 @@ public static class RegisterServices
         builder.Services.AddSingleton<IMediaFileEndpoint, MediaFileEndpoint>();
         builder.Services.AddSingleton<IVideoEndpoint, VideoEndpoint>();
         builder.Services.AddSingleton<IDbConnection, DbConnection>();
+
+        builder.Services.AddSingleton<IConnectionStringEndpoint, ConnectionStringEndpoint>();
+        builder.Services.AddSingleton<IAPIDbConnection, APIDbConnection>();
 
         builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
         builder.Services.AddSingleton<IOidGenerator, OidGenerator>();

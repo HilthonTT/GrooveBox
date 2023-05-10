@@ -1,5 +1,6 @@
 ﻿using GrooveBoxLibrary.DataAccess;
 using GrooveBoxLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GrooveBoxApi.Controllers;
@@ -21,6 +22,7 @@ public class GenresController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task CreateGenreAsync(GenreModel genre)
     {
         await _genreData.CreateGenreAsync(genre);

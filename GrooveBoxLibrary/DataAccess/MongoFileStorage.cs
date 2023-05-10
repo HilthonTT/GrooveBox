@@ -1,21 +1,27 @@
-﻿using MongoDB.Driver.GridFS;
+﻿using GrooveBoxLibrary.API;
+using MongoDB.Driver.GridFS;
 
 namespace GrooveBoxLibrary.DataAccess;
 public class MongoFileStorage : IFileStorage
 {
-    private readonly GridFSBucket _gridFSBucket;
-    private readonly IDbConnection _db;
     private readonly IMemoryCache _cache;
+    private readonly IConnectionStringEndpoint _connectionStringEndpoint;
+    private readonly IAPIDbConnection _connection;
 
-    public MongoFileStorage(IDbConnection db, IMemoryCache cache)
+    public MongoFileStorage(IConnectionStringEndpoint connectionStringEndpoint,
+                            IAPIDbConnection connection,
+                            IMemoryCache cache)
     {
-        _db = db;
+        _connectionStringEndpoint = connectionStringEndpoint;
+        _connection = connection;
         _cache = cache;
-        _gridFSBucket = new GridFSBucket(_db.Client.GetDatabase(_db.DbName));
     }
 
     public async Task<ObjectId> StoreFileAsync(Stream fileStream, string fileName)
     {
+        var conn = await _connection.CreateAsync(_connectionStringEndpoint);
+        GridFSBucket gridFSBucket = new(conn.Client.GetDatabase(conn.DbName));
+
         var options = new GridFSUploadOptions
         {
             Metadata = new BsonDocument
@@ -25,7 +31,7 @@ public class MongoFileStorage : IFileStorage
                 }
         };
 
-        return await _gridFSBucket.UploadFromStreamAsync(fileName, fileStream, options);
+        return await gridFSBucket.UploadFromStreamAsync(fileName, fileStream, options);
     }
 
     public async Task<string> CreateSourcePath(string fileId)
@@ -46,8 +52,11 @@ public class MongoFileStorage : IFileStorage
 
     private async Task<Stream> GetFileAsync(string fileId)
     {
+        var conn = await _connection.CreateAsync(_connectionStringEndpoint);
+        GridFSBucket gridFSBucket = new(conn.Client.GetDatabase(conn.DbName));
+
         var fileStream = new MemoryStream();
-        await _gridFSBucket.DownloadToStreamAsync(new ObjectId(fileId), fileStream);
+        await gridFSBucket.DownloadToStreamAsync(new ObjectId(fileId), fileStream);
         fileStream.Position = 0;
         return fileStream;
     }
