@@ -37,7 +37,7 @@ public static class RegisterServices
         //Personal Services
         builder.Services.AddSingleton<IAPIHelper, APIHelper>();
         builder.Services.AddSingleton<IUserEndpoint, UserEndpoint>();
-        builder.Services.AddTransient<IFileStorage, MongoFileStorage>();
+        builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
         builder.Services.AddSingleton<IGenreEndpoint, GenreEndpoint>();
         builder.Services.AddSingleton<IMediaFileEndpoint, MediaFileEndpoint>();
         builder.Services.AddSingleton<IVideoEndpoint, VideoEndpoint>();

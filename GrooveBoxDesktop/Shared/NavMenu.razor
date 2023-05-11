@@ -120,7 +120,10 @@
     protected override async Task OnInitializedAsync()
     {
         genres = await genreEndpoint.GetAllAsync();
-        sourcePath = await fileStorage.CreateSourcePath(loggedInUser.FileName);
+        if (string.IsNullOrWhiteSpace(loggedInUser.FileName) is false)
+        {
+            sourcePath = await fileStorage.CreateSourcePath(loggedInUser.FileName);
+        }
     }
 
     private List<BasicUserModel> GetVisibleAuthors()

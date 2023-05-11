@@ -49,6 +49,7 @@ public class UserController : ControllerBase
         {
             Id = mongoUser.Id,
             ObjectIdentifier = mongoUser.ObjectIdentifier,
+            FileName = mongoUser.FileName,
             FirstName = mongoUser.FirstName,
             LastName = mongoUser.LastName,
             DisplayName = mongoUser.DisplayName,
