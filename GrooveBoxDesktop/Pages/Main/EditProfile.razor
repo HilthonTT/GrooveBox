@@ -1,0 +1,94 @@
+﻿@page "/EditProfile"
+@attribute [Authorize]
+@inject IUserEndpoint userEndpoint
+@inject ILoggedInUserModel loggedInUser
+@inject IFileStorage fileStorage
+
+<h3>EditProfile</h3>
+
+@code {
+    private string currentEditingFirstName = "";
+    private string editedFirstName = "";
+    private string currentEditingLastName = "";
+    private string editedLastName = "";
+    private string currentEditingDisplayName = "";
+    private string editedDisplayName = "";
+
+    private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
+    private IBrowserFile file;
+
+
+    private void LoadFile(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    private void EditFirstName()
+    {
+        editedFirstName = loggedInUser.FirstName;
+        currentEditingFirstName = loggedInUser.Id;
+        currentEditingLastName = "";
+        currentEditingDisplayName = "";
+    }
+
+    private async Task SaveFirstName()
+    {
+        currentEditingFirstName = "";
+        var user = MapUser();
+        user.FirstName = editedFirstName;
+        await userEndpoint.UpdateUserAsync(user);
+    }
+
+    private void EditLastName()
+    {
+        editedLastName = loggedInUser.LastName;
+        currentEditingFirstName = "";
+        currentEditingLastName = loggedInUser.Id;
+        currentEditingDisplayName = "";
+    }
+
+    private async Task SaveLastName()
+    {
+        currentEditingLastName = "";
+        var user = MapUser();
+    }
+
+    private async Task UpdateProfilePicture()
+    {
+        if (file is null)
+        {
+            return;
+        }
+
+        using Stream fileStream = file.OpenReadStream(maxFileSize);
+        var fileId = await fileStorage.StoreFileAsync(fileStream, file.Name);
+
+        await fileStream.DisposeAsync();
+
+        loggedInUser.FileName = fileId.ToString();
+
+        var u = MapUser();
+
+        await userEndpoint.UpdateUserAsync(u);
+        file = null;
+    }
+
+    private UserModel MapUser()
+    {
+        return new UserModel
+        {
+            Id = loggedInUser.Id,
+            ObjectIdentifier = loggedInUser.Id,
+            FileName = loggedInUser.FileName,
+            FirstName = loggedInUser.FirstName,
+            LastName = loggedInUser.LastName,
+            DisplayName = loggedInUser.DisplayName,
+            EmailAddress = loggedInUser.EmailAddress,
+            Roles = loggedInUser.Roles,
+            AuthoredFiles = loggedInUser.AuthoredFiles,
+            VotedOnFiles = loggedInUser.VotedOnFiles,
+            SubscribedAuthors = loggedInUser.SubscribedAuthors,
+            UserSubscriptions = loggedInUser.UserSubscriptions,
+        };
+    }
+}

@@ -12,11 +12,12 @@ public class UserEndpoint : IUserEndpoint
         _logger = logger;
     }
 
-    public async Task<UserModel> GetByIdAsync(string id)
+    public async Task<UserModel> GetByObjectIdAsync(string objectId)
     {
-        var data = new { id };
+        HttpContent requestContent = new StringContent("");
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/GetById", data);
+        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsync(
+            $"api/User/GetByObjectId/{objectId}", requestContent);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<UserModel>();
@@ -28,21 +29,24 @@ public class UserEndpoint : IUserEndpoint
 
     public async Task CreateUserAsync(CreateUserModel user)
     {
-        var data = new
-        {
-            user.ObjectIdentifier,
-            user.FirstName,
-            user.LastName,
-            user.DisplayName,
-            user.EmailAddress,
-            user.Password,
-            user.FileName,
-        };
-
         using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Register", user);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("User successfully been created.");
+            return;
+        }
+        _logger.LogError("Error: {response}", response.ReasonPhrase);
+    }
+
+    public async Task UpdateUserSubscriptionAsync(string authorId, string userId)
+    {
+        HttpContent requestContent = new StringContent("");
+
+        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsync(
+            $"api/UpdateUserSubscription/{authorId}/{userId}", requestContent);
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Subscription successfully been updated.");
             return;
         }
         _logger.LogError("Error: {response}", response.ReasonPhrase);

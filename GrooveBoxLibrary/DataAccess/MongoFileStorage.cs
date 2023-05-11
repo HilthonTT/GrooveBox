@@ -36,6 +36,11 @@ public class MongoFileStorage : IFileStorage
 
     public async Task<string> CreateSourcePath(string fileId)
     {
+        if (string.IsNullOrWhiteSpace(fileId))
+        {
+            return "";
+        }
+
         string output = _cache.Get<string>(fileId);
         if (output is null)
         {

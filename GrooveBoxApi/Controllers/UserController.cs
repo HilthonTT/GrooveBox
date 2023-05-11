@@ -12,6 +12,7 @@ namespace GrooveBoxApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -73,39 +74,48 @@ public class UserController : ControllerBase
         string Id
     );
 
-    [HttpPost]
-    [Route("GetById")]
-    public ApplicationUserModel GetById(GetId Id)
+    [HttpPost("GetByObjectId/{objectId}")]
+    public async Task<ApplicationUserModel> GetById(string objectId)
     {
         try
         {
-            SQLUserModel userModel = _SQLuserData.GetUserById(Id.Id);
+            SQLUserModel SQLUser = _SQLuserData.GetUserByObjectId(objectId);
+            UserModel mongoUser = await _userData.GetUserFromAuthenticationAsync(objectId);
 
-            if (userModel is not null)
+            ApplicationUserModel user = new()
             {
-                ApplicationUserModel user = new()
-                {
-                    Id = userModel.Id,
-                    EmailAddress = userModel.EmailAddress,
-                    ObjectIdentifier = userModel.ObjectIdentifier,
-                    DisplayName = userModel.DisplayName,
-                };
+                Id = mongoUser.Id,
+                ObjectIdentifier = mongoUser.ObjectIdentifier,
+                FileName = mongoUser.FileName,
+                FirstName = mongoUser.FirstName,
+                LastName = mongoUser.LastName,
+                DisplayName = mongoUser.DisplayName,
+                EmailAddress = mongoUser.EmailAddress,
+                AuthoredFiles = mongoUser.AuthoredFiles,
+                VotedOnFiles = mongoUser.VotedOnFiles,
+                SubscribedAuthors = mongoUser.SubscribedAuthors,
+                UserSubscriptions = mongoUser.UserSubscriptions,
+            };
 
-                var userRoles = from ur in _context.UserRoles
-                                join r in _context.Roles on ur.RoleId equals r.Id
-                                select new { ur.UserId, ur.RoleId, r.Name };
+            var userRoles = from ur in _context.UserRoles
+                            join r in _context.Roles on ur.RoleId equals r.Id
+                            select new { ur.UserId, ur.RoleId, r.Name };
 
-                user.Roles = userRoles.Where(x => x.UserId == user.Id).ToDictionary(key => key.RoleId, val => val.Name);
-                return user;
-            }
+            user.Roles = userRoles.Where(x => x.UserId == SQLUser.Id).ToDictionary(key => key.RoleId, val => val.Name);
 
-            return null;
+            return user;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
             return null;
         }
+    }
+
+    [HttpPost("UpdateUserSubscription/{authorId}/{userId}")]
+    public async Task UpdateUserSubscription(string authorId, string userId)
+    {
+        await _userData.UpdateSubscriptionAsync(authorId, userId);
     }
 
     [HttpPost]

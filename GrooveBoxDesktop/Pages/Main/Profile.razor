@@ -1,4 +1,4 @@
-﻿@page "/Profile/{UserId}"
+﻿@page "/Profile/{ObjectId}"
 @attribute [Authorize]
 @inject IUserEndpoint userEndpoint
 @inject IMediaFileEndpoint mediaFileEndpoint
@@ -6,66 +6,130 @@
 @inject ILoggedInUserModel loggedInUser
 @inject NavigationManager navManager
 
-<h1 class="page-heading mb-2">My Profile</h1>
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-12">
+        <div class="row">
+            <div class="col-12">
+                <div class="close-button-section">
+                    <button class="btn btn-close" @onclick="ClosePage" />
+                </div>
+                @if (user is not null)
+                {
+                    <div class="card">
+                        <div class="row g-0">
+                            <div class="col-md-1">
+                                <div class="p-1">
+                                    @if (string.IsNullOrWhiteSpace(sourcePath) is false)
+                                    {
+                                        <div class="text-center p-3">
+                                            <img src="@sourcePath" 
+                                                class="card-img-top rounded-circle" 
+                                                alt="@user.FileName"
+                                                style="width: 100px; height: 100px;">
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center p-3">
+                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                class="card-img-top rounded-circle" 
+                                                alt="Placeholder Image"
+                                                style="width: 100px; height: 100px;">
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-11">
+                                 <div class="card-body text-center">
+                                    <h4 class="card-title">@user.DisplayName</h4>
+                                    <p class="text-muted">
+                                        <span class="mx-2">
+                                            @user.UserSubscriptions.Count subscribers
+                                        </span>
+                                        <span>
+                                            @user.AuthoredFiles.Count medias
+                                        </span>
+                                    </p>
+                                    @if (user.Id != loggedInUser.Id)
+                                    {
+                                        <button class="btn btn-secondary" @onclick="Subscribe">
+                                            @GetSubscribeClass()
+                                        </button>
+                                    }
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="row mt-3">
+            <hr />
+            <h5 class="page-heading mb-2">Medias</h5>
+            @if (mediaFiles is not null)
+            {
+                <Virtualize Items="mediaFiles" Context="m" OverscanCount="10">
+                    <MediaComponent @key="m.Id" Media="m"/>
+                </Virtualize>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter]
-    public string UserId { get; set; }
+    public string ObjectId { get; set; }
 
+    private bool isBusy = false;
     private string sourcePath;
     private UserModel user;
     private List<MediaFileModel> mediaFiles;
-    private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
-    private IBrowserFile file;
 
     protected override async Task OnInitializedAsync()
     {
-        user = await userEndpoint.GetByIdAsync(UserId);
-        mediaFiles = await mediaFileEndpoint.GetUserMediaFilesAsync(UserId);
-        sourcePath = await fileStorage.CreateSourcePath(user.FileName);
+        user = await userEndpoint.GetByObjectIdAsync(ObjectId);
+        if (user is not null)
+        {
+            mediaFiles = await mediaFileEndpoint.GetUserMediaFilesAsync(user.Id);
+            sourcePath = await fileStorage.CreateSourcePath(user.FileName);
+        }
     }
 
-    private void LoadFile(InputFileChangeEventArgs e)
+    private async Task Subscribe()
     {
-        file = e.File;
-    }
-
-    private async Task UpdateProfilePicture()
-    {
-        if (file is null)
+        if (isBusy || user is null)
         {
             return;
         }
 
-        using Stream fileStream = file.OpenReadStream(maxFileSize);
-        var fileId = await fileStorage.StoreFileAsync(fileStream, file.Name);
+        isBusy = true;
 
-        await fileStream.DisposeAsync();
-
-        loggedInUser.FileName = fileId.ToString();
-
-        UserModel u = new()
+        if (user.UserSubscriptions.Add(loggedInUser.Id) is false)
         {
-            Id = loggedInUser.Id,
-            ObjectIdentifier = loggedInUser.Id,
-            FileName = loggedInUser.FileName,
-            FirstName = loggedInUser.FirstName,
-            LastName = loggedInUser.LastName,
-            DisplayName = loggedInUser.DisplayName,
-            EmailAddress = loggedInUser.EmailAddress,
-            Roles = loggedInUser.Roles,
-            AuthoredFiles = loggedInUser.AuthoredFiles,
-            VotedOnFiles = loggedInUser.VotedOnFiles,
-            SubscribedAuthors = loggedInUser.SubscribedAuthors,
-            UserSubscriptions = loggedInUser.UserSubscriptions,
-        };
+            user.UserSubscriptions.Remove(loggedInUser.Id);
+        }
 
-        await userEndpoint.UpdateUserAsync(u);
-        file = null;
+        await userEndpoint.UpdateUserSubscriptionAsync(user.Id, loggedInUser.Id);
+        isBusy = false;
     }
 
     private void ClosePage()
     {
         navManager.NavigateTo("/");
+    }
+
+    private string GetSubscribeClass()
+    {
+        if (user.UserSubscriptions is null || user.UserSubscriptions.Count == 0)
+        {
+            return "Subscribe";
+        }
+
+        if (user.UserSubscriptions.Contains(loggedInUser.Id))
+        {
+            return "Unsubscribe";
+        }
+
+        return "Subscribe";
     }
 }
