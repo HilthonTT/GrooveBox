@@ -83,6 +83,7 @@ public class APIHelper : IAPIHelper
             _loggedInUser.AuthoredFiles = result.AuthoredFiles;
             _loggedInUser.VotedOnFiles = result.VotedOnFiles;
             _loggedInUser.SubscribedAuthors = result.SubscribedAuthors;
+            _loggedInUser.UserSubscriptions = result.UserSubscriptions;
             _loggedInUser.Token = token;
         }
         else

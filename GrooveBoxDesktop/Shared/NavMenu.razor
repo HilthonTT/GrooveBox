@@ -1,5 +1,6 @@
 ﻿@inject ILoggedInUserModel loggedInUser
 @inject IGenreEndpoint genreEndpoint
+@inject IFileStorage fileStorage
 @inject NavigationManager navManager
 
 <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
@@ -76,9 +77,9 @@
             id="user-dropdown" 
             data-bs-toggle="dropdown" 
             aria-expanded="false">
-        @if (string.IsNullOrWhiteSpace(loggedInUser.FileName) is false)
+        @if (string.IsNullOrWhiteSpace(sourcePath) is false)
         {
-            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+            <img src="@sourcePath" 
                 alt="@loggedInUser.FileName" 
                 class="rounded-circle me-2" 
                 width="32" 
@@ -114,10 +115,12 @@
 @code {
     private bool showAllAuthors = false;
     private List<GenreModel> genres;
+    private string sourcePath = "";
 
     protected override async Task OnInitializedAsync()
     {
         genres = await genreEndpoint.GetAllAsync();
+        sourcePath = await fileStorage.CreateSourcePath(loggedInUser.FileName);
     }
 
     private List<BasicUserModel> GetVisibleAuthors()

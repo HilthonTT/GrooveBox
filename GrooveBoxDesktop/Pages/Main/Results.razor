@@ -1,5 +1,5 @@
 ﻿@page "/Results/{SearchText}"
-@using GrooveBoxLibrary.DataAccess;
+@attribute [Authorize]
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject ILoggedInUserModel loggedInUser
 @inject IFileStorage fileStorage
@@ -12,7 +12,7 @@
 <div class="row">
     <div class="col-12">
         <div class="input-group mb-3">
-          <input @bind-value="SearchText" 
+          <input @oninput="((txt) => OnSearchInput((string)txt.Value))" @bind-value="SearchText"
                 type="text" class="form-control" placeholder="Search" 
                 aria-label="Search" aria-describedby="search-button"/>
           <button class="btn btn-outline-secondary" type="button" 
@@ -56,6 +56,35 @@
         mediaFiles = mediaFiles.Where(m => m.Title.Contains(
             SearchText, StringComparison.InvariantCultureIgnoreCase) ||
             m.Description.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSInterop.InvokeVoidAsync("initializeTooltips");
+            await LoadFilterState();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        SearchText = await secureStorage.GetAsync(nameof(SearchText)) ?? "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText) is false)
+        {
+            await secureStorage.SetAsync(nameof(SearchText), SearchText);
+        }
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        SearchText = searchInput;
+        await SaveFilterState();
     }
 
     private void LoadResults()

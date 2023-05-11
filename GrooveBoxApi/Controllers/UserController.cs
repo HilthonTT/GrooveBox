@@ -2,6 +2,7 @@
 using GrooveBoxApi.DataAccess;
 using GrooveBoxApi.Models;
 using GrooveBoxLibrary.DataAccess;
+using GrooveBoxLibrary.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -41,8 +42,8 @@ public class UserController : ControllerBase
     {
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         
-        UserModel userModel = _SQLuserData.GetUserById(userId);
-        GrooveBoxLibrary.Models.UserModel mongoUser = await _userData.GetUserFromAuthenticationAsync(userModel.ObjectIdentifier);
+        SQLUserModel userModel = _SQLuserData.GetUserById(userId);
+        UserModel mongoUser = await _userData.GetUserFromAuthenticationAsync(userModel.ObjectIdentifier);
 
         ApplicationUserModel user = new()
         {
@@ -55,6 +56,7 @@ public class UserController : ControllerBase
             AuthoredFiles = mongoUser.AuthoredFiles,
             VotedOnFiles = mongoUser.VotedOnFiles,
             SubscribedAuthors = mongoUser.SubscribedAuthors,
+            UserSubscriptions = mongoUser.UserSubscriptions,
         };
 
         var userRoles = from ur in _context.UserRoles
@@ -76,7 +78,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            UserModel userModel = _SQLuserData.GetUserById(Id.Id);
+            SQLUserModel userModel = _SQLuserData.GetUserById(Id.Id);
 
             if (userModel is not null)
             {
@@ -107,13 +109,19 @@ public class UserController : ControllerBase
 
     [HttpPost]
     [Route("UpdateUser")]
-    [Authorize(Roles = "Admin")]
     public async Task UpdateUser(UserModel user)
     {
         try
         {
-            _SQLuserData.UpdateUser(user);
-            var u = _context.Users.Where(x => x.Id == user.Id).First();
+            await _userData.UpdateUserAsync(user);
+            var sqlUser = _SQLuserData.GetUserByObjectId(user.ObjectIdentifier);
+            sqlUser.FirstName = user.FirstName;
+            sqlUser.LastName = user.LastName;
+            sqlUser.DisplayName = user.DisplayName;
+            sqlUser.EmailAddress = user.EmailAddress;
+
+            _SQLuserData.UpdateUser(sqlUser);
+            var u = _context.Users.Where(x => x.Id == sqlUser.Id).First();
 
             u.Id = user.Id;
             u.Email = user.EmailAddress;
@@ -166,7 +174,7 @@ public class UserController : ControllerBase
                         return BadRequest();
                     }
 
-                    UserModel u = new()
+                    SQLUserModel u = new()
                     {
                         Id = existingUser.Id,
                         ObjectIdentifier = user.ObjectIdentifier,

@@ -12,26 +12,26 @@ public class SQLUserData : ISQLUserData
         _sql = sql;
     }
 
-    public UserModel GetUserById(string id)
+    public SQLUserModel GetUserById(string id)
     {
-        var output = _sql.LoadData<UserModel, dynamic>("dbo.spUser_GetById", new { id }, DataBaseName);
+        var output = _sql.LoadData<SQLUserModel, dynamic>("dbo.spUser_GetById", new { id }, DataBaseName);
 
         return output.FirstOrDefault();
     }
 
-    public UserModel GetUserByObjectId(string objectId)
+    public SQLUserModel GetUserByObjectId(string objectId)
     {
-        var output = _sql.LoadData<UserModel, dynamic>("dbo.spUser_GetByObjectId", new { objectId }, DataBaseName);
+        var output = _sql.LoadData<SQLUserModel, dynamic>("dbo.spUser_GetByObjectId", new { objectId }, DataBaseName);
 
         return output.FirstOrDefault();
     }
 
-    public void InsertUser(UserModel user)
+    public void InsertUser(SQLUserModel user)
     {
         _sql.SaveData("dbo.spUser_Insert", user, DataBaseName);
     }
 
-    public void UpdateUser(UserModel user)
+    public void UpdateUser(SQLUserModel user)
     {
         _sql.SaveData("dbo.spUser_Update", user, DataBaseName);
     }

@@ -14,4 +14,5 @@ public interface ILoggedInUserModel
     List<BasicMediaFileModel> VotedOnFiles { get; set; }
     Dictionary<string, string> Roles { get; set; }
     List<BasicUserModel> SubscribedAuthors { get; set; }
+    HashSet<string> UserSubscriptions { get; set; }
 }

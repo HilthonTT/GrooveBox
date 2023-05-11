@@ -1,12 +1,11 @@
 ﻿@page "/Create"
-@using GrooveBoxLibrary.DataAccess;
+@attribute [Authorize]
 @inject ILoggedInUserModel loggedInUser
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject IGenreEndpoint genreEndpoint
 @inject IFileStorage fileStorage
 @inject IJSRuntime JSInterop
 @inject NavigationManager navManager
-@attribute [Authorize]
 
 <h1 class="page-heading mb-2">Upload your media</h1>
 

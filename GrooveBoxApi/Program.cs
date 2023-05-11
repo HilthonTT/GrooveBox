@@ -8,8 +8,6 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using GrooveBoxLibrary.DataAccess;
 using Microsoft.AspNetCore.Mvc;
-using GrooveBoxLibrary.API;
-using GrooveBoxLibrary.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;

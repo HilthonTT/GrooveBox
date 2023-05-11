@@ -14,5 +14,6 @@ public class ApplicationUserModel
     public Dictionary<string, string> Roles { get; set; } = new();
     public List<BasicMediaFileModel> AuthoredFiles { get; set; } = new();
     public List<BasicMediaFileModel> VotedOnFiles { get; set; } = new();
+    public HashSet<string> UserSubscriptions { get; set; } = new();
     public List<BasicUserModel> SubscribedAuthors { get; set; } = new();
 }

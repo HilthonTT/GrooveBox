@@ -1,5 +1,5 @@
 ﻿@page "/"
-@using GrooveBoxLibrary.DataAccess;
+@attribute [Authorize]
 @inject ILoggedInUserModel loggedInUser
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject IGenreEndpoint genreEndpoint
@@ -13,7 +13,7 @@
 <div class="row">
     <div class="col-12">
         <div class="input-group mb-3">
-          <input @bind-value="searchText" 
+          <input @oninput="((txt) => OnSearchInput((string)txt.Value))" @bind-value="searchText"
                 type="text" class="form-control" placeholder="Search" 
                 aria-label="Search" aria-describedby="search-button"/>
           <button class="btn btn-outline-secondary" type="button" 
@@ -64,7 +64,21 @@
         if (firstRender)
         {
             await JSInterop.InvokeVoidAsync("initializeTooltips");
+            await LoadFilterState();
             StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        searchText = await secureStorage.GetAsync(nameof(searchText)) ?? "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+             await secureStorage.SetAsync(nameof(searchText), searchText);
         }
     }
 
@@ -82,7 +96,7 @@
 
     private void LoadGenreMedia(GenreModel genre)
     {
-        navManager.NavigateTo($"/{genre.GenreName}");
+        navManager.NavigateTo($"/Genre/{genre.GenreName}");
     }
 
     private string GetSelectedGenreClass(string genre)
@@ -93,6 +107,12 @@
         }
 
         return "";
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await SaveFilterState();
     }
 
     private List<MediaFileModel> GetGenreMedias(GenreModel genre)

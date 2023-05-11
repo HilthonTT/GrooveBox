@@ -1,4 +1,5 @@
 ﻿@page "/MediaDetails/{Id}"
+@attribute [Authorize]
 @inject ILoggedInUserModel loggedInUser
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject IVideoEndpoint videoEndpoint

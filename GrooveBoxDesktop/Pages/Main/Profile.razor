@@ -1,0 +1,71 @@
+﻿@page "/Profile/{UserId}"
+@attribute [Authorize]
+@inject IUserEndpoint userEndpoint
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject IFileStorage fileStorage
+@inject ILoggedInUserModel loggedInUser
+@inject NavigationManager navManager
+
+<h1 class="page-heading mb-2">My Profile</h1>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; }
+
+    private string sourcePath;
+    private UserModel user;
+    private List<MediaFileModel> mediaFiles;
+    private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
+    private IBrowserFile file;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await userEndpoint.GetByIdAsync(UserId);
+        mediaFiles = await mediaFileEndpoint.GetUserMediaFilesAsync(UserId);
+        sourcePath = await fileStorage.CreateSourcePath(user.FileName);
+    }
+
+    private void LoadFile(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    private async Task UpdateProfilePicture()
+    {
+        if (file is null)
+        {
+            return;
+        }
+
+        using Stream fileStream = file.OpenReadStream(maxFileSize);
+        var fileId = await fileStorage.StoreFileAsync(fileStream, file.Name);
+
+        await fileStream.DisposeAsync();
+
+        loggedInUser.FileName = fileId.ToString();
+
+        UserModel u = new()
+        {
+            Id = loggedInUser.Id,
+            ObjectIdentifier = loggedInUser.Id,
+            FileName = loggedInUser.FileName,
+            FirstName = loggedInUser.FirstName,
+            LastName = loggedInUser.LastName,
+            DisplayName = loggedInUser.DisplayName,
+            EmailAddress = loggedInUser.EmailAddress,
+            Roles = loggedInUser.Roles,
+            AuthoredFiles = loggedInUser.AuthoredFiles,
+            VotedOnFiles = loggedInUser.VotedOnFiles,
+            SubscribedAuthors = loggedInUser.SubscribedAuthors,
+            UserSubscriptions = loggedInUser.UserSubscriptions,
+        };
+
+        await userEndpoint.UpdateUserAsync(u);
+        file = null;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+}

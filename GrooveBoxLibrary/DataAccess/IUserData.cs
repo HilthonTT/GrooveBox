@@ -7,4 +7,5 @@ public interface IUserData
     Task<UserModel> GetUserFromAuthenticationAsync(string objectId);
     Task<List<UserModel>> GetUsersAsync();
     Task UpdateSubscriptionAsync(string authorId, string userId);
+    Task UpdateUserAsync(UserModel user);
 }

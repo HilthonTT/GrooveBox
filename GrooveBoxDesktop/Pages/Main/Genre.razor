@@ -1,0 +1,100 @@
+﻿@page "/Genre/{GenreName}"
+@attribute [Authorize]
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject IGenreEndpoint genreEndpoint
+@inject ISecureStorageWrapper secureStorage
+@inject ILoggedInUserModel loggedInUser
+@inject IJSRuntime JSInterop
+@inject NavigationManager navManager
+
+<h1 class="page-heading mb-2">@GenreName</h1>
+
+<div class="row">
+    <div class="col-12">
+        <div class="input-group mb-3">
+            <input @oninput="((txt) => OnSearchInput((string)txt.Value))" @bind-value="searchText"
+                type="text" class="form-control" placeholder="Search" aria-label="Search"
+                aria-describedby="search-button"/>
+            <button class="btn btn-outline-secondary" type="button"
+                    id="search-button" @onclick="LoadResults">
+                Search
+            </button>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="row">
+        @if (mediaFiles?.Count > 0)
+        {
+            <Virtualize Items="mediaFiles" Context="m" OverscanCount="10">
+                <MediaComponent @key="m.Id" Media="m"/>
+            </Virtualize>
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">No Results Found.</h4>
+                <p>There was unfortunately no results with the genre.</p>
+                <hr>
+                <p class="mb-0">You can look else where to find different medias.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string GenreName { get; set; }
+
+    private string searchText = "";
+    private GenreModel selectedGenre;
+    private List<MediaFileModel> mediaFiles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        mediaFiles = await mediaFileEndpoint.GetAllAsync();
+        mediaFiles = mediaFiles.Where(
+            m => m.Genre.GenreName.ToLower() == GenreName.ToLower()).ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSInterop.InvokeVoidAsync("initializeTooltips");
+            await LoadFilterState();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        searchText = await secureStorage.GetAsync(nameof(searchText));
+    }
+
+    private async Task SaveFilterState()
+    {
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            await secureStorage.SetAsync(nameof(searchText), searchText);
+        }
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await SaveFilterState();
+    }
+
+    private void LoadResults()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            navManager.NavigateTo("/");
+        }
+        else
+        {
+            navManager.NavigateTo($"/results/{searchText}", true);
+        }
+    }
+}
