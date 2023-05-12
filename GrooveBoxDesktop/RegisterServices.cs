@@ -4,6 +4,7 @@ using GrooveBoxDesktop.Helpers;
 using GrooveBoxLibrary.API;
 using GrooveBoxLibrary.DataAccess;
 using GrooveBoxLibrary.Models;
+using MatBlazor;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ public static class RegisterServices
 
         builder.Services.AddMemoryCache();
         builder.Services.AddBlazoredLocalStorage();
+        builder.Services.AddMatBlazor();
 
         // Configuration JSON File Injection
         builder.Configuration.AddConfiguration(AddConfiguration());
@@ -33,20 +35,17 @@ public static class RegisterServices
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddAuthorizationCore();
         builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
+        builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
+        builder.Services.AddSingleton<IAPIHelper, APIHelper>();
 
         //Personal Services
-        builder.Services.AddSingleton<IAPIHelper, APIHelper>();
         builder.Services.AddSingleton<IUserEndpoint, UserEndpoint>();
         builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
         builder.Services.AddSingleton<IGenreEndpoint, GenreEndpoint>();
         builder.Services.AddSingleton<IMediaFileEndpoint, MediaFileEndpoint>();
         builder.Services.AddSingleton<IVideoEndpoint, VideoEndpoint>();
-        builder.Services.AddSingleton<IDbConnection, DbConnection>();
-
         builder.Services.AddSingleton<IConnectionStringEndpoint, ConnectionStringEndpoint>();
         builder.Services.AddSingleton<IAPIDbConnection, APIDbConnection>();
-
-        builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
         builder.Services.AddSingleton<IOidGenerator, OidGenerator>();
         builder.Services.AddSingleton<ISecureStorageWrapper, SecureStorageWrapper>();
     }

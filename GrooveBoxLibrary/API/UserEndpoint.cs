@@ -12,12 +12,11 @@ public class UserEndpoint : IUserEndpoint
         _logger = logger;
     }
 
-    public async Task<UserModel> GetByObjectIdAsync(string objectId)
+    public async Task<UserModel> GetByIdAsync(string userId)
     {
         HttpContent requestContent = new StringContent("");
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsync(
-            $"api/User/GetByObjectId/{objectId}", requestContent);
+        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/GetById/{userId}", requestContent);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<UserModel>();
@@ -29,7 +28,7 @@ public class UserEndpoint : IUserEndpoint
 
     public async Task CreateUserAsync(CreateUserModel user)
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Register", user);
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Register", user);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("User successfully been created.");
@@ -42,8 +41,7 @@ public class UserEndpoint : IUserEndpoint
     {
         HttpContent requestContent = new StringContent("");
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsync(
-            $"api/UpdateUserSubscription/{authorId}/{userId}", requestContent);
+        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/UpdateUserSubscription/{authorId}/{userId}", requestContent);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("Subscription successfully been updated.");
@@ -62,7 +60,7 @@ public class UserEndpoint : IUserEndpoint
             user.DisplayName
         };
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/UpdateUser", data);
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/UpdateUser", data);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("User successfully been updated.");
@@ -73,7 +71,7 @@ public class UserEndpoint : IUserEndpoint
 
     public async Task<Dictionary<string, string>> GetAllRolesAsync()
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.GetAsync("api/User/Admin/GetAllRoles");
+        using var response = await _apiHelper.ApiClient.GetAsync("api/User/Admin/GetAllRoles");
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<Dictionary<string, string>>();
@@ -85,7 +83,7 @@ public class UserEndpoint : IUserEndpoint
     public async Task CreateRoleAsync(string roleName)
     {
         var data = new { roleName };
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Admin/CreateRole", data);
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Admin/CreateRole", data);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("The role of name {roleName} has been added to the database", roleName);
@@ -98,7 +96,7 @@ public class UserEndpoint : IUserEndpoint
     {
         var data = new { userId, roleName };
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Admin/AddUserToRole", data);
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Admin/AddUserToRole", data);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("The user of Id {userId} has gained the role of name {roleName}",
@@ -112,7 +110,7 @@ public class UserEndpoint : IUserEndpoint
     {
         var data = new { userId, roleName };
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Admin/RemoveUserFromRole", data);
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/Admin/RemoveUserFromRole", data);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("The user of Id {userId} has lost the role of name {roleName}",

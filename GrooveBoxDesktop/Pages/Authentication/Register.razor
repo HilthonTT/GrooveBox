@@ -19,23 +19,6 @@
     <div class="col-xl-10 col-lg-12">
         <div class="row">
             <div class="col-12">
-                @if (string.IsNullOrWhiteSpace(filePath))
-                {
-                    <img id="image-container" src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                        class="img-fluid rounded-circle mx-auto d-block mb-2" alt="Stock Image" 
-                        style="height: 200px; width: 200px;"/>
-                }
-                else
-                {
-                    <img id="image-container" src="@filePath" 
-                        class="img-fluid rounded-circle mx-auto d-block mb-2" alt="Profile Picture" 
-                        style="height: 200px; width: 200px;"/>
-                }
-                <InputFile OnChange="LoadFile" class="form-control" accept="image/*"/>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-12">
                 <EditForm Model="user" OnValidSubmit="RegisterAsync">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
@@ -104,20 +87,6 @@
 @code {
     CreateUserModel user = new();
     private string errorMessage = "";
-    private string filePath = "";
-    private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
-    private IBrowserFile file;
-
-    private async Task LoadFile(InputFileChangeEventArgs e)
-    {
-        file = e.File;
-        using var stream = file.OpenReadStream(maxFileSize);
-        using var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        byte[] bytes = memoryStream.ToArray();
-        string base64Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
-        filePath = base64Image;
-    }
 
     private void LoadLoginPage()
     {
@@ -130,11 +99,6 @@
         {
             errorMessage = "";
 
-            using Stream fileStream = file.OpenReadStream(maxFileSize);
-            var fileId = await fileStorage.StoreFileAsync(fileStream, file.Name);
-
-            await fileStream.DisposeAsync();
-
             string objectId = await oidGenerator.GenerateOidAsync();
             UserModel u = new()
             {
@@ -143,7 +107,7 @@
                 LastName = user.LastName,
                 DisplayName = user.DisplayName,
                 EmailAddress = user.EmailAddress,
-                FileName = fileId.ToString() ?? "",
+                FileName = "",
             };
             user.ObjectIdentifier = objectId;
 

@@ -1,0 +1,54 @@
+﻿@inject IFileStorage fileStorage
+@inject NavigationManager navManager
+@inject IJSRuntime JSInterop
+
+<div class="card mb-3">
+  <div class="text-center">
+      @if (string.IsNullOrWhiteSpace(sourcePath))
+       {
+           <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+               class="card-img-top" alt="Placeholder Image" 
+               style="max-width: 350px;"/>
+       }
+       else
+       {
+           <img src="@sourcePath" class="card-img-top" alt="@sourcePath"
+                style="max-width: 350px;"/>
+       }
+  </div>
+    <div class="card-body">
+    <h5 class="card-title truncated-title">@Media.Title</h5>
+    <p class="card-text text-break">@Media.Description</p>
+    <p class="card-text">
+        <small class="text-muted">@Media.UserVotes.Count Up votes</small>
+    </p>
+    <button class="btn btn-secondary" @onclick="LoadEditPage">Edit</button>
+  </div>
+</div>
+
+@code {
+    [EditorRequired]
+    [Parameter]
+    public MediaFileModel Media { get; set; }
+
+    private string sourcePath = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        sourcePath = await fileStorage.CreateSourcePath(Media.ThumbnailPath);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSInterop.InvokeVoidAsync("initializeTooltips");
+            StateHasChanged();
+        }
+    }
+
+    private void LoadEditPage()
+    {
+        navManager.NavigateTo($"/MediaEdit/{Media.Id}");
+    }
+}

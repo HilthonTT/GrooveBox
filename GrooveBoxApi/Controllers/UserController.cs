@@ -74,13 +74,13 @@ public class UserController : ControllerBase
         string Id
     );
 
-    [HttpPost("GetByObjectId/{objectId}")]
-    public async Task<ApplicationUserModel> GetById(string objectId)
+    [HttpPost("GetById/{userId}")]
+    public async Task<ApplicationUserModel> GetById(string userId)
     {
         try
         {
-            SQLUserModel SQLUser = _SQLuserData.GetUserByObjectId(objectId);
-            UserModel mongoUser = await _userData.GetUserFromAuthenticationAsync(objectId);
+            UserModel mongoUser = await _userData.GetUserAsync(userId);
+            SQLUserModel SQLUser = _SQLuserData.GetUserByObjectId(mongoUser.ObjectIdentifier);
 
             ApplicationUserModel user = new()
             {
@@ -154,7 +154,7 @@ public class UserController : ControllerBase
         string DisplayName,
         string EmailAddress,
         string Password,
-        string fileName
+        string FileName
     );
 
     [AllowAnonymous]
@@ -197,14 +197,14 @@ public class UserController : ControllerBase
 
                     _SQLuserData.InsertUser(u);
 
-                    var mongoUser = new GrooveBoxLibrary.Models.UserModel()
+                    var mongoUser = new UserModel()
                     {
                         ObjectIdentifier = user.ObjectIdentifier,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         DisplayName = user.DisplayName,
                         EmailAddress = user.EmailAddress,
-                        FileName = user.fileName,
+                        FileName = user.FileName ?? "",
                     };
 
                     await _userData.CreateUserAsync(mongoUser);

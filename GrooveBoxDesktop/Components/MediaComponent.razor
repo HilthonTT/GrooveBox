@@ -1,8 +1,8 @@
-﻿@using GrooveBoxLibrary.DataAccess;
-@inject NavigationManager navManager
+﻿@inject NavigationManager navManager
 @inject IFileStorage fileStorage
+@inject IJSRuntime JSInterop
 
-<div class="col-xl-4 col-lg-6" @onclick="(() => LoadMediaPage(Media))">
+<div class="col-xl-4 col-lg-6 mb-2" @onclick="(() => LoadMediaPage(Media))">
     <div class="row">
         <div class="col-12">
             <div class="card custom-pointer" style="width: 12rem;">
@@ -51,6 +51,15 @@
     protected override async Task OnInitializedAsync()
     {
         sourcePath = await fileStorage.CreateSourcePath(Media.ThumbnailPath);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSInterop.InvokeVoidAsync("initializeTooltips");
+            StateHasChanged();
+        }
     }
 
     private void LoadMediaPage(MediaFileModel media)

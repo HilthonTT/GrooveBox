@@ -6,7 +6,7 @@ public interface IUserEndpoint
     Task CreateRoleAsync(string roleName);
     Task CreateUserAsync(CreateUserModel user);
     Task<Dictionary<string, string>> GetAllRolesAsync();
-    Task<UserModel> GetByObjectIdAsync(string objectId);
+    Task<UserModel> GetByIdAsync(string userId);
     Task RemoveUserFromRoleAsync(string userId, string roleName);
     Task UpdateUserAsync(UserModel user);
     Task UpdateUserSubscriptionAsync(string authorId, string userId);

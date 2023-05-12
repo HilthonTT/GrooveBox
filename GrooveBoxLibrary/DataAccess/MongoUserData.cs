@@ -61,7 +61,7 @@ public class MongoUserData : IUserData
 
             await authorsInTransaction.ReplaceOneAsync(session, a => a.Id == authorId, author);
 
-            var usersInTransaction = db.GetCollection<UserModel>(_db.GenreCollectionName);
+            var usersInTransaction = db.GetCollection<UserModel>(_db.UserCollectionName);
             var user = await GetUserAsync(userId);
 
             if (isSubscribed)

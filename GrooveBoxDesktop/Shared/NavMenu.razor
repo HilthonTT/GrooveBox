@@ -3,7 +3,7 @@
 @inject IFileStorage fileStorage
 @inject NavigationManager navManager
 
-<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100 overflow-auto">
     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
         <span class="fs-4">Groove Box</span>
@@ -36,16 +36,15 @@
     <hr class="navbar-hr" />
     <div class="text-uppercase fw-bold">Subscriptions</div>
     <ul class="nav nav-pills flex-column mb-0">
-        @if (loggedInUser?.SubscribedAuthors != null && loggedInUser.SubscribedAuthors.Any())
+        @if (loggedInUser?.SubscribedAuthors is not null && loggedInUser.SubscribedAuthors.Any())
         {      
             <Virtualize Items="GetVisibleAuthors()" Context="a" OverscanCount="3">
                 <li class="nav-item custom-pointer" @onclick="(() => LoadAuthorProfilePage(a))">
-                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available."
-                            alt="@a.FileName"
-                            class="rounded-circle me-2"
-                            width="32"
-                            height="32">
-                    </li>
+                    <a href="#" class="nav-link active" aria-current="page">
+                        <svg class="bi me-2" width="16" height="16"><use xlink:href="#"></use></svg>
+                        @a.DisplayName
+                    </a>
+                </li>
             </Virtualize>     
             @if (loggedInUser.SubscribedAuthors.Count() > 3)
             {
@@ -150,12 +149,12 @@
 
     private void LoadGenreMedia(GenreModel genre)
     {
-        navManager.NavigateTo($"/{genre.GenreName}");
+        navManager.NavigateTo($"/Genre/{genre.GenreName}");
     }
 
     private void LoadAuthorProfilePage(BasicUserModel author)
     {
-        navManager.NavigateTo($"/UserDetails/{author.Id}");
+        navManager.NavigateTo($"/Profile/{author.Id}");
     }
 
     private string GetGenreIconClass(GenreModel genre)
