@@ -1,0 +1,208 @@
+﻿@page "/MediaEdit/{Id}"
+@attribute [Authorize]
+@inject ILoggedInUserModel loggedInUser
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject IGenreEndpoint genreEndpoint
+@inject IFileStorage fileStorage
+@inject NavigationManager navManager
+
+<h1 class="page-heading mb-2">Your Videos</h1>
+
+<div class="card-body">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-md-8 card p-2">
+            <div class="row">
+                <div class="close-button-section">
+                    <button class="btn btn-close" @onclick="ClosePage"/>
+                </div>
+                <div class="col-12">
+                    <div class="text-center">
+                        <h2>@media?.Title</h2>
+                        <div class="mb-3">
+                            @if (string.IsNullOrWhiteSpace(sourcePath) is false)
+                            {
+                                <div class="text-center p-3">
+                                    <img src="@sourcePath" 
+                                        class="card-img-top rounded-circle" 
+                                        alt="@sourcePath"
+                                        style="width: 300px; height: 300px;">
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center p-3">
+                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                        class="card-img-top rounded-circle" 
+                                        alt="Placeholder Image"
+                                        style="width: 300px; height: 300px;">
+                                </div>
+                            }
+                            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editModal">
+                                Edit Media
+                            </button>
+                        </div>
+                        <div class="mb-3">
+                          <p class="h4">@media?.Title</p>
+                          <p class="h5">@media?.Description</p>
+                          <p class="h5">Date Created: @media?.DateCreated.ToString("dd/MM/yyyy")</p>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" 
+    tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">
+            Edit your media's thumbnail
+        </h5>
+        <button type="button" class="btn-close" 
+        data-bs-dismiss="modal" aria-label="Close" />
+        </div>
+        <div class="modal-body">
+        <EditForm Model="editingMedia" OnValidSubmit="UpdateMedia">
+            <DataAnnotationsValidator />
+            <div class="row justify-content-center">
+                <div class="col-xl-10 col-lg-12">
+                    <div class="row">
+                        <div class="col-4">
+                            @if (string.IsNullOrWhiteSpace(sourcePath))
+                            {
+                                <img id="image-container" src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                class="img-fluid rounded mx-auto d-block mb-2" alt="Stock Image" />
+                            }
+                            else
+                            {
+                                    <img id="image-container" src="@sourcePath" 
+                                    class="img-fluid rounded mx-auto d-block mb-2" alt="Selected Image" />
+                            }
+                            <InputFile OnChange="LoadFile" class="form-control" accept="image/*"/>
+                        </div>
+                        <div class="col-8">
+                            <div class="mb-3">
+                                <label for="media-title" class="form-label">Title</label>
+                                <div id="title-help" class="form-text">How would you like to name your media?</div>
+                                <InputText class="form-control" id="media-title" 
+                                aria-describedby="title-help" @bind-Value="editingMedia.Title" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="media-description" class="form-label">Description</label>
+                                <div id="description-help" class="form-text">Describe your media, what does it contain?</div>
+                                <InputTextArea class="form-control" id="media-description" 
+                                aria-describedby="description-help" @bind-Value="editingMedia.Description"/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="media-genre" class="form-label">Genres</label>
+                                <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
+                                @if (genres is not null)
+                                {
+                                    <InputSelect class="form-select" aria-describedby="genre-help" @bind-Value="editingMedia.GenreId">
+                                        @foreach (var g in genres)
+                                        {
+                                            <option value="@g.Id">@g.GenreName</option>
+                                        }
+                                    </InputSelect>
+                                }
+                            </div>
+                            <div class="center-children">
+                                <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Close
+        </button>
+        </div>
+    </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private CreateMediaFileModel editingMedia = new();
+    private List<GenreModel> genres;
+    private MediaFileModel media;
+    private IBrowserFile file;
+    private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
+    private string sourcePath = "";
+    private bool showModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        media = await mediaFileEndpoint.GetMediaFileAsync(Id);
+        genres = await genreEndpoint.GetAllAsync();
+        if (media is not null)
+        {
+            if (loggedInUser.Id != media.Author.Id)
+            {
+                navManager.NavigateTo("/");
+            }
+            editingMedia.Title = media.Title;
+            editingMedia.Description = media.Description;
+            editingMedia.FilePath = media.FilePath;
+            editingMedia.GenreId = media.Genre?.Id;
+            sourcePath = await fileStorage.CreateSourcePath(media.ThumbnailPath);
+        }
+    }
+
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        using var stream = file.OpenReadStream(maxFileSize);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        byte[] bytes = memoryStream.ToArray();
+        string base64Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        sourcePath = base64Image;
+    }
+
+    private async Task UpdateMedia()
+    {
+        string filePath = "";
+        var genre = genres.FirstOrDefault(g => g.Id == editingMedia.GenreId);
+        if (genre is null)
+        {
+            return;
+        }
+
+        if (file is not null)
+        {
+            using Stream fileStream = file.OpenReadStream(maxFileSize);
+            var fileId = await fileStorage.StoreFileAsync(fileStream, file.Name);
+            filePath = fileId.ToString();
+            await fileStream.DisposeAsync();
+        }
+        else
+        {
+            filePath = media.ThumbnailPath;
+        }
+
+        media.Title = editingMedia.Title;
+        media.Description = editingMedia.Description;
+        media.Genre = genre;
+        media.ThumbnailPath = filePath;
+
+        await mediaFileEndpoint.UpdateMediaFileAsync(media);
+        editingMedia = new();
+        ClosePage();
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+}

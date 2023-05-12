@@ -12,7 +12,7 @@
     <div class="text-uppercase fw-bold">Uploaded @medias?.Count medias</div>
     <div class="col-12">
         <div class="input-group">
-            <input @oninput="((txt) => OnSearchInput((string)txt.Value))" @bind-value="searchText"
+            <input @oninput="((txt) => OnSearchInput((string)txt.Value))"
                 type="text" class="form-control" placeholder="Search" 
                 aria-label="Search" aria-describedby="search-button"/>
             <button class="btn btn-outline-secondary" type="button" 
@@ -46,22 +46,8 @@
     {
         if (firstRender)
         {
-            await LoadFilterState();
             await FilterMedias();
             StateHasChanged();
-        }
-    }
-
-    private async Task LoadFilterState()
-    {
-        searchText = await secureStorage.GetAsync(nameof(searchText)) ?? "";
-    }
-
-    private async Task SaveFilterState()
-    {
-        if (string.IsNullOrWhiteSpace(searchText) is false)
-        {
-            await secureStorage.SetAsync(nameof(searchText), searchText);
         }
     }
 
@@ -76,7 +62,6 @@
         }
 
         medias = output;
-        await SaveFilterState();
     }
 
     private async Task OnSearchInput(string searchInput)
