@@ -120,10 +120,27 @@
             </div>
         </EditForm>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer justify-content-between">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             Close
         </button>
+        @if (archivingMedia is null)
+        {
+            <button type="button" class="btn btn-danger" @onclick="(() => archivingMedia = media)">
+                Archive
+            </button>    
+        }
+        else
+        {
+            <div class="btn-group">
+                <button class="btn btn-danger" @onclick="ArchiveMedia">
+                    Are you sure? This can't be undone
+                </button>
+                <button class="btn btn-success" @onclick="(() => archivingMedia = null)">
+                    Cancel
+                </button>
+            </div>
+        }
         </div>
     </div>
     </div>
@@ -136,6 +153,7 @@
     private CreateMediaFileModel editingMedia = new();
     private List<GenreModel> genres;
     private MediaFileModel media;
+    private MediaFileModel archivingMedia;
     private IBrowserFile file;
     private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
     private string sourcePath = "";
@@ -147,9 +165,9 @@
         genres = await genreEndpoint.GetAllAsync();
         if (media is not null)
         {
-            if (loggedInUser.Id != media.Author.Id)
+            if (loggedInUser.Id != media.Author.Id || media.Archived)
             {
-                navManager.NavigateTo("/");
+                ClosePage();
             }
             editingMedia.Title = media.Title;
             editingMedia.Description = media.Description;
@@ -198,6 +216,13 @@
 
         await mediaFileEndpoint.UpdateMediaFileAsync(media);
         editingMedia = new();
+        ClosePage();
+    }
+
+    private async Task ArchiveMedia()
+    {
+        media.Archived = true;
+        await mediaFileEndpoint.UpdateMediaFileAsync(media);
         ClosePage();
     }
 
