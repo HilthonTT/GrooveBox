@@ -30,7 +30,7 @@
             {
                 <Virtualize Items="genres" Context="g" OverscanCount="10">
                     <div class="col-12 d-flex justify-content-between">
-                        <h3 class="page-heading mb-2 custom-pointer d-inline-block width-auto" 
+                        <h3 class="page-heading mb-2 custom-pointer d-inline-block width-auto text-decoration-underline" 
                             @onclick="(() => LoadGenreMedia(g))">
                             @g.GenreName
                         </h3>
@@ -120,6 +120,6 @@
         var random = new Random();
         return mediaFiles.Where(m => m.Genre?.Id == genre.Id)
             .OrderBy(m => random.Next())
-            .Take(5).ToList();
+            .Take(3).ToList();
     }
 }

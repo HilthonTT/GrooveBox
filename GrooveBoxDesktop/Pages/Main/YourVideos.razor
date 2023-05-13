@@ -27,7 +27,7 @@
         @if (medias is not null)
         {
             <Virtualize Items="medias" Context="m" OverscanCount="10">
-                <VideoComponent @key="m.Id" Media="m"/>
+                <MediaComponent @key="m.Id" Media="m"/>
             </Virtualize>
         }
     </div>

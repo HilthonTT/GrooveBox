@@ -1,44 +1,56 @@
 ﻿@inject NavigationManager navManager
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject IUserEndpoint userEndpoint
 @inject IFileStorage fileStorage
+@inject ILoggedInUserModel loggedInUser
 @inject IJSRuntime JSInterop
 
-<div class="col-xl-4 col-lg-6 mb-2" @onclick="(() => LoadMediaPage(Media))">
-    <div class="row">
-        <div class="col-12">
-            <div class="card custom-pointer" style="width: 12rem;">
-                <div class="overlay-container">
-                    @if (string.IsNullOrWhiteSpace(sourcePath) is false)
-                    {
-                        <div class="text-center">
-                            <img src="@sourcePath" 
-                                class="card-img-top image-with-shadow rounded"
-                                style="width: 150px; height: 150px;"/>
-                        </div>
-                    }
-                    else
-                    {
-                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                class="card-img-top image-with-shadow rounded" 
-                                alt="No Image Available" />
-                    }
-                    <div class="overlay"></div>
-                </div>
-                <div class="card-body">
-                    <h6 class="card-title truncated-title text-break" 
-                        data-fulltitle="@Media.Title">
-                        @GetTitleText(Media)
-                    </h6>
-                    <p class="card-text">
-                        <span class="oi oi-thumb-up"></span>
-                        @GetUserVotesText(Media)
-                    </p>
-                    <p class="card-text">
-                        Made by: @Media.Author.DisplayName
-                    </p>
-                </div>
-            </div>
+<div class="col-xl-4 col-lg-6 mb-2">
+    <MatCard class="demo-mat-card">
+        <div class="demo-mat-card-content">
+            <MatHeadline6 class="demo-mat-card-clean-margin">
+                @Media.Title
+            </MatHeadline6>
+            <MatSubtitle2 class="demo-mat-card-clean-margin">
+                by @Media.Author.DisplayName
+            </MatSubtitle2>
         </div>
-    </div>
+        <MatCardContent>
+            @if (string.IsNullOrWhiteSpace(sourcePath))
+            {
+                <MatCardMedia Wide="true" ImageUrl="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                    @onclick="LoadMediaPage"/>
+            }
+            else
+            {
+                <MatCardMedia Wide="true" ImageUrl="@sourcePath" 
+                    @onclick="LoadMediaPage" />
+            }
+            <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin truncated-title">
+                @Media.Description
+            </MatBody2>
+            <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                <MatButton @onclick="LoadGenrePage">@Media.Genre.GenreName</MatButton>
+            </MatBody2>
+        </MatCardContent>
+        <MatCardActions>
+            <MatCardActionButtons>
+                <MatButton @onclick="LoadMediaPage">Play</MatButton>
+                @if (loggedInUser.Id != Media.Author.Id)
+                {
+                    <MatButton Class="@GetSubscribeColor()" @onclick="Subscribe">Subscribe</MatButton>
+                }
+                else
+                {
+                    <MatButton @onclick="LoadEditPage">Edit</MatButton>
+                }
+            </MatCardActionButtons>
+            <MatCardActionIcons>
+                <MatIconButton Class="@GetVoteColor()" Icon="@MatIconNames.Favorite" @onclick="VoteUp"></MatIconButton>
+                <MatIconButton Icon="@MatIconNames.Dashboard"></MatIconButton>
+            </MatCardActionIcons>
+        </MatCardActions>
+    </MatCard>
 </div>
 
 @code {
@@ -46,11 +58,14 @@
     [EditorRequired]
     public MediaFileModel Media { get; set; }
 
+    private UserModel author;
     private string sourcePath = "";
+    private bool isBusy = false;
 
     protected override async Task OnInitializedAsync()
     {
         sourcePath = await fileStorage.CreateSourcePath(Media.ThumbnailPath);
+        author = await userEndpoint.GetByIdAsync(Media.Author.Id);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -62,33 +77,79 @@
         }
     }
 
-    private void LoadMediaPage(MediaFileModel media)
+    private async Task Subscribe()
     {
-        navManager.NavigateTo($"MediaDetails/{media.Id}");
-    }
-
-    private void LoadGenreMedia(GenreModel genre)
-    {
-        navManager.NavigateTo($"/{genre.GenreName}");
-    }
-
-    private string GetTitleText(MediaFileModel media)
-    {
-        return media.Title.Length > 30 ? $"{media.Title.Substring(0, 30)}..." : media.Title;
-    }
-
-    private string GetUserVotesText(MediaFileModel media)
-    {
-        if (media.UserVotes?.Count > 0)
+        if (isBusy || author is null || author.Id == loggedInUser.Id)
         {
-            return media.UserVotes.Count.ToString("00");
+            return;
         }
 
-        if (media.UserVotes?.Count == 0)
+        isBusy = true;
+
+        if (author.UserSubscriptions.Add(loggedInUser.Id) is false)
         {
-            return "0";
+            author.UserSubscriptions.Remove(loggedInUser.Id);
         }
 
-        return "N/A";
+        await userEndpoint.UpdateUserSubscriptionAsync(author.Id, loggedInUser.Id);
+        isBusy = false;
+    }
+
+    private async Task VoteUp()
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        isBusy = true;
+        if (string.IsNullOrWhiteSpace(loggedInUser.Id))
+        {
+            navManager.NavigateTo("/Login");
+            return;
+        }
+
+        if (Media.UserVotes.Add(loggedInUser.Id) is false)
+        {
+            Media.UserVotes.Remove(loggedInUser.Id);
+        }
+
+        await mediaFileEndpoint.UpdateVoteMediaFileAsync(Media.Id, loggedInUser.Id);
+        isBusy = false;
+    }
+
+    private void LoadMediaPage()
+    {
+        navManager.NavigateTo($"MediaDetails/{Media.Id}");
+    }
+
+    private void LoadGenrePage()
+    {
+        navManager.NavigateTo($"Genre/{Media.Genre.GenreName}");
+    }
+
+    private void LoadEditPage()
+    {
+        navManager.NavigateTo($"/MediaEdit/{Media.Id}");
+    }
+
+    private string GetSubscribeColor()
+    {
+        if (author is not null && author.UserSubscriptions.Contains(loggedInUser.Id))
+        {
+            return "text-danger";
+        }
+
+        return "text-success";
+    }
+
+    private string GetVoteColor()
+    {
+        if (Media.UserVotes.Contains(loggedInUser.Id))
+        {
+            return "text-success";
+        }
+
+        return "";
     }
 }

@@ -1,82 +1,83 @@
 ﻿@page "/Create"
+@using System.Diagnostics;
 @attribute [Authorize]
 @inject ILoggedInUserModel loggedInUser
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject IGenreEndpoint genreEndpoint
 @inject IFileStorage fileStorage
 @inject IJSRuntime JSInterop
+@inject IMatDialogService matDialogService
 @inject NavigationManager navManager
 
 <h1 class="page-heading mb-2">Upload your media</h1>
 
-@if (isUploading)
-{
-    <div class="alert alert-warning" role="alert">
-        Remain patient, we are uploading your media! Do not leave the page.
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-12">
+        <MatCard Class="p-5">
+            <EditForm Model="media" OnValidSubmit="CreateMedia">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="row">
+                    <div class="col-12">
+                        <div class="text-center mb-3">
+                            @if (string.IsNullOrWhiteSpace(thumbnailPath))
+                            {
+                                <img class="rounded rounded-3" src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                    style="width: 300px; height: 300px;"/>
+                            }
+                            else
+                            {
+                                <img class="rounded rounded-3" src="@thumbnailPath" style="width: 300px; height: 300px;"/>
+                            }
+                        </div>
+                        <InputFile OnChange="LoadThumbnailFile" class="form-control" accept="image/*"/>
+                    </div>       
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <MatStringField @bind-Value="media.Title" Label="Title" 
+                                Required="true" Type="text" FullWidth="true"
+                                HelperText="Briefly describe your media's title." HelperTextPersistent="true"/>
+                        </div>
+                        <div class="mb-3">
+                            <MatStringField @bind-Value="media.Description" Label="Description" 
+                                Required="true" Type="text" FullWidth="true"
+                                HelperText="Explain what your media is about, its content or otherwise." HelperTextPersistent="true"/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="media-file" class="form-label">Choose your file to upload.</label>
+                            <div id="file-help" class="form-text">Select the file you would like to upload.</div>
+                            <InputFile OnChange="LoadMediaFile" class="form-control" accept="audio/*,video/*,.mkv"/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="media-genre" class="form-label">Genres</label>
+                            <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
+                            @if (genres is not null)
+                            {
+                                <MatSelectValue @bind-Value="media.GenreId" Items="genres" 
+                                    ValueSelector="@(i=>i.Id)" Context="g" FullWidth="true">
+                                    <ItemTemplate>
+                                        <span>@g.GenreName</span>
+                                    </ItemTemplate>
+                                </MatSelectValue> 
+                            }
+                            <p>
+                                Selected Genre: @GetGenreName()
+                            </p>
+                        </div>
+                        <div class="center-children">
+                           <MatButton Raised Class="bg-secondary mx-2" Type="submit">
+                                Upload
+                            </MatButton>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </MatCard>           
     </div>
-}
+</div>
 
-<EditForm Model="media" OnValidSubmit="CreateMedia">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div class="row justify-content-center">
-        <div class="col-xl-10 col-lg-12">
-            <div class="row">
-                <div class="col-4">
-                    @if (string.IsNullOrWhiteSpace(thumbnailPath))
-                    {
-                        <img id="image-container" src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                        class="img-fluid rounded mx-auto d-block mb-2" alt="Stock Image" />
-                    }
-                    else
-                    {
-                         <img id="image-container" src="@thumbnailPath" 
-                            class="img-fluid rounded mx-auto d-block mb-2" alt="Selected Image" />
-                    }
-                    <InputFile OnChange="LoadThumbnailFile" class="form-control" accept="image/*"/>
-                </div>
-                <div class="col-8">
-                    <div class="mb-3">
-                        <label for="media-title" class="form-label">Title</label>
-                        <div id="title-help" class="form-text">How would you like to name your media?</div>
-                        <InputText class="form-control" id="media-title" 
-                        aria-describedby="title-help" @bind-Value="media.Title" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="media-description" class="form-label">Description</label>
-                        <div id="description-help" class="form-text">Describe your media, what does it contain?</div>
-                        <InputTextArea class="form-control" id="media-description" 
-                        aria-describedby="description-help" @bind-Value="media.Description"/>
-                    </div>
-                    <div class="mb-3">
-                        <label for="media-file" class="form-label">Choose your file to upload.</label>
-                        <div id="file-help" class="form-text">Select the file you would like to upload.</div>
-                        <InputFile OnChange="LoadMediaFile" class="form-control" 
-                        accept="audio/*,video/*,.mkv"/>
-                    </div>
-                    <div class="mb-3">
-                        <label for="media-genre" class="form-label">Genres</label>
-                        <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
-                        @if (genres is not null)
-                        {
-                            <InputSelect class="form-select" aria-describedby="genre-help" @bind-Value="media.GenreId">
-                                @foreach (var g in genres)
-                                {
-                                    <option value="@g.Id">@g.GenreName</option>
-                                }
-                            </InputSelect>
-                        }
-                    </div>
-                    <div class="center-children">
-                        <button type="submit" class="btn btn-primary">
-                            Upload
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</EditForm>
 
 @code {
     private CreateMediaFileModel media = new();
@@ -86,7 +87,6 @@
     private long maxFileSizeMedia = 1024 * 1024 * 1000; // represents 1000MB
     private IBrowserFile thumbnailFile;
     private IBrowserFile mediaFile;
-    private bool isUploading = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,6 +96,11 @@
     private void ClosePage()
     {
         navManager.NavigateTo("/");
+    }
+
+    private async Task OpenAlertFromService()
+    {
+        await matDialogService.AlertAsync("Remain patient, we are uploading your media! Do not leave the page.");
     }
 
     private async Task LoadThumbnailFile(InputFileChangeEventArgs e)
@@ -116,7 +121,6 @@
 
     private async Task CreateMedia()
     {
-        isUploading = true;
         if (mediaFile is null || mediaFile?.Size > maxFileSizeMedia || thumbnailFile?.Size > maxFileSizeThumbnail)
         {
             // Handle null or oversized thumbnail file
@@ -134,7 +138,7 @@
 
         using Stream mediaStream = mediaFile.OpenReadStream(maxFileSizeMedia);
         var mediaFileId = await fileStorage.StoreFileAsync(mediaStream, mediaFile.Name);
-        
+
         await mediaStream.DisposeAsync();
         await thumbnailStream.DisposeAsync();
 
@@ -157,6 +161,16 @@
         await mediaFileEndpoint.CreateMediaFileAsync(m);
         media = new();
         ClosePage();
-        isUploading = false;  
+    }
+
+    private string GetGenreName()
+    {
+        if (string.IsNullOrWhiteSpace(media.GenreId) is false)
+        {
+            var g = genres.FirstOrDefault(g => g.Id == media.GenreId);
+            return g.GenreName;
+        }
+
+        return "";
     }
 }

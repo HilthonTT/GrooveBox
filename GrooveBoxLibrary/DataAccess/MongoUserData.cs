@@ -3,11 +3,13 @@ public class MongoUserData : IUserData
 {
     private readonly IMongoCollection<UserModel> _users;
     private readonly IDbConnection _db;
+    private readonly IMemoryCache _cache;
 
-    public MongoUserData(IDbConnection db)
+    public MongoUserData(IDbConnection db, IMemoryCache cache)
     {
         _users = db.UserCollection;
         _db = db;
+        _cache = cache;
     }
 
     public async Task<List<UserModel>> GetUsersAsync()
@@ -18,8 +20,15 @@ public class MongoUserData : IUserData
 
     public async Task<UserModel> GetUserAsync(string id)
     {
-        var results = await _users.FindAsync(u => u.Id == id);
-        return await results.FirstOrDefaultAsync();
+        var output = _cache.Get<UserModel>(id);
+        if (output == null)
+        {
+            var results = await _users.FindAsync(u => u.Id == id);
+            output = await results.FirstOrDefaultAsync();
+            _cache.Set(id, output, TimeSpan.FromMinutes(30));
+        }
+
+        return output;
     }
 
     public async Task<UserModel> GetUserFromAuthenticationAsync(string objectId)

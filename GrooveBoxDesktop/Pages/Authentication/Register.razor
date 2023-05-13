@@ -3,81 +3,61 @@
 @inject IOidGenerator oidGenerator
 @inject IAuthenticationService authService
 @inject IFileStorage fileStorage
+@inject IMatDialogService matDialogService
 @inject NavigationManager navManager
 @attribute [AllowAnonymous]
-
-@if (string.IsNullOrWhiteSpace(errorMessage) is false)
-{
-    <div class="alert alert-danger" role="alert">
-        @errorMessage
-    </div>
-}
-
-<h1 class="page-heading mb-2">Register</h1>
 
 <div class="row justify-content-center">
     <div class="col-xl-10 col-lg-12">
         <div class="row">
             <div class="col-12">
-                <EditForm Model="user" OnValidSubmit="RegisterAsync">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
-                    <div class="mb-3">
-                        <label for="first-name" class="form-label">First Name</label>
-                        <div id="first-name-help" class="form-text">Enter your first name.</div>
-                        <InputText class="form-control" id="first-name" placeholder="First Name" 
-                         aria-describedby="first-name-help" @bind-Value="user.FirstName"/>
-                    </div>
-                    <div class="mb-3">
-                        <label for="last-name" class="form-label">Last Name</label>
-                        <div id="last-name-help" class="form-text">Enter your last name.</div>
-                        <InputText class="form-control" id="last-name" placeholder="Last Name"
-                            aria-describedby="last-name-help" @bind-Value="user.LastName" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="display-name" class="form-label">Display Name</label>
-                        <div id="display-name-help" class="form-text">
-                            Enter your display name. It doesn't have to be your real name.
-                        </div>
-                        <InputText class="form-control" id="display-name" placeholder="Display Name"
-                            aria-describedby="display-name-help" @bind-Value="user.DisplayName" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <div id="email-help" class="form-text">Enter your email address.</div>
-                        <InputText class="form-control" id="email" placeholder="Email"
-                            aria-describedby="email-help" @bind-Value="user.EmailAddress" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <div id="password-help" class="form-text">
-                            Enter your password. It must contain a special character.
-                        </div>
-                        <InputText class="form-control" type="password" id="password" placeholder="At least 6 characters"
-                            aria-describedby="password-help" @bind-Value="user.Password" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirm-password" class="form-label">Confirm Password</label>
-                        <div id="confirm-password-help" class="form-text">
-                            Repeat the password you've previously entered.
-                        </div>
-                        <InputText class="form-control" type="password" id="confirm-password" placeholder="Confirm Password"
-                            aria-describedby="confirm-password-help" @bind-Value="user.ConfirmPassword" />
-                    </div>
-                    <div class="center-children">
-                        <button class="btn btn-primary" type="submit">
-                            Register
-                        </button>
-                    </div>
-                    <div class="center-children">
-                        <label class="form-label">Already have an account?</label>
-                    </div>
-                    <div class="center-children">
-                        <button type="button" class="btn btn-secondary" @onclick="LoadLoginPage">
-                            Login
-                        </button>
-                    </div>
-                </EditForm>
+                <MatCard Class="p-5">
+                    <MatH5 Class="text-center text-uppercase">Register</MatH5>
+                    <MatCardContent>
+                        <EditForm Model="user" OnValidSubmit="RegisterAsync">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="mb-3">
+                                 <MatStringField @bind-Value="user.FirstName" Label="First Name" 
+                                    Required="true" Type="text" FullWidth="true"
+                                    HelperText="Enter your first name." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="mb-3">
+                                <MatStringField @bind-Value="user.LastName" Label="Last Name" 
+                                    Required="true" Type="text" FullWidth="true"
+                                    HelperText="Enter your last name." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="mb-3">
+                                <MatStringField @bind-Value="user.DisplayName" Label="Display Name" 
+                                    Required="true" Type="text" FullWidth="true"
+                                    HelperText="Enter your display name." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="mb-3">
+                               <MatStringField @bind-Value="user.EmailAddress" Label="Email Address" 
+                                    Required="true" Type="email" FullWidth="true"
+                                    HelperText="Enter your email address." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="mb-3">
+                                <MatStringField @bind-Value="user.Password" Label="Password" 
+                                    Required="true" Type="password" FullWidth="true"
+                                    HelperText="Enter a strong password." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="mb-3">
+                                <MatStringField @bind-Value="user.ConfirmPassword" Label="Confirm Password" 
+                                    Required="true" Type="password" FullWidth="true"
+                                    HelperText="Enter your password again to confirm it." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="center-children">
+                                <MatButton Raised Class="bg-secondary mx-2" Type="submit">
+                                    Register
+                                </MatButton>
+                                <MatButton Raised Class="bg-secondary" Type="button" @onclick="LoadLoginPage">
+                                    Login
+                                </MatButton>
+                            </div>
+                        </EditForm>
+                    </MatCardContent>
+                </MatCard>
             </div>
         </div>
     </div>
@@ -91,6 +71,11 @@
     private void LoadLoginPage()
     {
         navManager.NavigateTo("/login");
+    }
+
+    private async Task OpenAlertFromService()
+    {
+        await matDialogService.AlertAsync(errorMessage);
     }
 
     private async Task RegisterAsync()
@@ -116,10 +101,12 @@
             if (result is not null)
             {
                 navManager.NavigateTo("/");
-                return;
             }
-
-            errorMessage = "You've successfully registered but there was an error trying to log you in.";
+            else
+            {  
+                errorMessage = "Registration successfull but login failed.";
+                await OpenAlertFromService();
+            }
         }
         catch (Exception ex)
         {

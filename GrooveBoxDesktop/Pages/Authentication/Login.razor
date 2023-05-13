@@ -1,58 +1,46 @@
 ﻿@page "/Login"
 @inject IAuthenticationService authService
+@inject IMatDialogService matDialogService
 @inject NavigationManager navManager
 @attribute [AllowAnonymous]
-
-@if (string.IsNullOrWhiteSpace(errorMessage) is false)
-{
-    <div class="alert alert-danger">
-        @errorMessage
-    </div>
-}
-
-<h1 class="page-heading mb-2">Login</h1>
 
 <div class="row justify-content-center">
     <div class="col-xl-10 col-lg-12">
         <div class="row">
             <div class="col-12">
-                <EditForm Model="user" OnValidSubmit="ExecuteLogin">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <div id="email-help" class="form-text">
-                            Enter your email address to gain access to your account.
-                        </div>
-                        <InputText class="form-control" id="email" placeholder="Email"
-                            aria-describedby="email-help" @bind-Value="user.Email" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <div id="password-help" class="form-text">
-                            Enter your password to gain access to your account.
-                        </div>
-                        <InputText class="form-control" type="password" id="password" placeholder="Password"
-                            aria-describedby="password-help" @bind-Value="user.Password" />
-                    </div>
-                    <div class="center-children">
-                        <button class="btn btn-primary" type="submit">Login</button>
-                    </div>
-                    <div class="center-children">
-                        <label class="form-label">Don't have an account?</label>
-                    </div>
-                    <div class="center-children">
-                        <button type="button" class="btn btn-secondary" @onclick="LoadRegisterPage">
-                            Register
-                        </button>
-                    </div>
-                </EditForm>
+                <MatCard Class="p-5">
+                    <MatH5 Class="text-center text-uppercase">Login</MatH5>
+                    <MatCardContent>
+                        <EditForm Model="user" OnValidSubmit="ExecuteLogin">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="mb-3">
+                                <MatStringField @bind-Value="user.Email" Label="Email Address" 
+                                    Required="true" Type="email" FullWidth="true"
+                                    HelperText="Enter your email to gain access to your account." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="mb-3">
+                                <MatStringField @bind-Value="user.Password" Label="Password"
+                                    Required="true" Type="password" FullWidth="true"
+                                    HelperText="Enter your password to gain access to your account." HelperTextPersistent="true"/>
+                            </div>
+                            <div class="center-children">
+                                <MatButton Raised Class="bg-secondary mx-2" Type="submit">
+                                    Login
+                                </MatButton>
+                                <MatButton Raised Class="bg-secondary" Type="button" @onclick="LoadRegisterPage">
+                                    Register
+                                </MatButton>
+                            </div>
+                        </EditForm>
+                    </MatCardContent>
+                </MatCard>
             </div>
         </div>
     </div>
 </div>
 
-@code {
+            @code {
     private AuthenticationUserModel user = new();
     private string errorMessage = "";
 
@@ -66,8 +54,14 @@
         }
         else
         {
-            errorMessage = "There was an error trying to log in.";
+            errorMessage = "Make sure your credentials are correct.";
+            await OpenAlertFromService();
         }
+    }
+
+    private async Task OpenAlertFromService()
+    {
+        await matDialogService.AlertAsync(errorMessage);
     }
 
     private void LoadRegisterPage()
