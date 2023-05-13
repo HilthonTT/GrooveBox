@@ -1,4 +1,4 @@
-﻿@page "/Profile/{UserId}"
+﻿@page "/Profile/{Id}"
 @attribute [Authorize]
 @inject IUserEndpoint userEndpoint
 @inject IMediaFileEndpoint mediaFileEndpoint
@@ -50,10 +50,16 @@
                                             @user.AuthoredFiles.Count medias
                                         </span>
                                     </p>
-                                    @if (user.Id != loggedInUser.Id)
+                                    @if (user.Id != loggedInUser?.Id)
                                     {
                                         <button class="btn btn-secondary" @onclick="Subscribe">
                                             @GetSubscribeClass()
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-secondary w-100" @onclick="LoadEditProfilePage">
+                                            Edit Profile
                                         </button>
                                     }
                                  </div>
@@ -78,7 +84,7 @@
 
 @code {
     [Parameter]
-    public string UserId { get; set; }
+    public string Id { get; set; }
 
     private bool isBusy = false;
     private string sourcePath;
@@ -87,7 +93,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        user = await userEndpoint.GetByIdAsync(UserId);
+        user = await userEndpoint.GetByIdAsync(Id);
         if (user is not null)
         {
             mediaFiles = await mediaFileEndpoint.GetUserMediaFilesAsync(user.Id);
@@ -116,6 +122,11 @@
     private void ClosePage()
     {
         navManager.NavigateTo("/");
+    }
+
+    private void LoadEditProfilePage()
+    {
+        navManager.NavigateTo("/EditProfile");
     }
 
     private string GetSubscribeClass()

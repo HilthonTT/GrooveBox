@@ -3,8 +3,177 @@
 @inject IUserEndpoint userEndpoint
 @inject ILoggedInUserModel loggedInUser
 @inject IFileStorage fileStorage
+@inject NavigationManager navManager
 
-<h3>EditProfile</h3>
+<h1 class="page-heading mb-2">Edit Profile</h1>
+
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-12">
+        <div class="row">
+            <div class="col-12">
+                <div class="close-button-section">
+                    <button class="btn btn-close" @onclick="ClosePage" />
+                </div>
+                <div class="card">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <div class="p-1">
+                                @if (string.IsNullOrWhiteSpace(sourcePath) is false)
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="@sourcePath" 
+                                            class="card-img-top rounded-circle" 
+                                            alt="@loggedInUser?.FileName"
+                                            style="width: 100px; height: 100px;">
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                            class="card-img-top rounded-circle" 
+                                            alt="Placeholder Image"
+                                            style="width: 100px; height: 100px;">
+                                    </div>
+                                }
+                                <button class="btn btn-secondary w-100" data-bs-toggle="modal" data-bs-target="#profilePicture">
+                                    Edit Profile Picture
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">Your information</h4>
+                                <div class="card-text h4">
+                                    @if (currentEditingFirstName == loggedInUser?.Id)
+                                    {
+                                        <EditForm Model="editedFirstName" OnSubmit="SaveFirstName">
+                                            <InputText class="form-control" @bind-Value="editedFirstName"/>
+                                            <button class="btn" type="submit">
+                                                <span class="oi oi-check"></span>
+                                            </button>
+                                            <button class="btn" type="button" @onclick="(() => currentEditingFirstName = string.Empty)">
+                                                <span class="oi oi-x"></span>
+                                            </button>
+                                        </EditForm>
+                                    }
+                                    else
+                                    {
+                                        @loggedInUser.FirstName
+                                        <span class="oi oi-pencil" @onclick="EditFirstName"></span>
+                                    }
+                                </div>
+                                <div class="card-text">
+                                    @if (currentEditingLastName == loggedInUser?.Id)
+                                    {
+                                        <EditForm Model="editedLastName" OnSubmit="SaveLastName">
+                                            <InputText class="form-control" @bind-Value="editedLastName"/>
+                                            <button class="btn" type="submit">
+                                                <span class="oi oi-check"></span>
+                                            </button>
+                                            <button class="btn" type="button" @onclick="(() => currentEditingLastName = string.Empty)">
+                                                <span class="oi oi-x"></span>
+                                            </button>
+                                        </EditForm>
+                                    }
+                                    else
+                                    {
+                                        @loggedInUser.LastName
+                                        <span class="oi oi-pencil" @onclick="EditLastName"></span>
+                                    }
+                                </div>
+                                <div class="card-text">
+                                    @if (currentEditingDisplayName == loggedInUser?.Id)
+                                    {
+                                        <EditForm Model="editedDisplayName" OnSubmit="SaveDisplayName">
+                                            <InputText class="form-control" @bind-Value="editedDisplayName"/>
+                                            <button class="btn" type="submit">
+                                                <span class="oi oi-check"></span>
+                                            </button>
+                                            <button class="btn" type="button" @onclick="(() => currentEditingDisplayName = string.Empty)">
+                                                <span class="oi oi-x"></span>
+                                            </button>
+                                        </EditForm>
+                                    }
+                                    else
+                                    {
+                                        @loggedInUser?.DisplayName
+                                        <span class="oi oi-pencil" @onclick="EditDisplayName"></span>
+                                    }
+                                </div>
+                                <div class="card-text">
+                                    @loggedInUser?.EmailAddress
+                                </div>
+                                <p class="text-muted">
+                                    <span class="mx-2">
+                                        @loggedInUser?.UserSubscriptions.Count subscribers
+                                    </span>
+                                    <span>
+                                        @loggedInUser?.AuthoredFiles.Count medias
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="profilePicture" 
+    tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">
+                Edit your profile picture
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+            </div>
+            @if (string.IsNullOrWhiteSpace(sourcePath) is false)
+            {
+                <div class="text-center p-3">
+                    <img src="@sourcePath" 
+                        class="card-img-top rounded-circle" 
+                        alt="@loggedInUser?.FileName"
+                        style="width: 200px; height: 200px;">
+                </div>
+            }
+            else
+            {
+                <div class="text-center p-3">
+                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                        class="card-img-top rounded-circle" 
+                        alt="Placeholder Image"
+                        style="width: 200px; height: 200px;">
+                </div>
+            }
+            <div class="modal-body">
+                <div class="row">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-uppercase" for="profile-picture">Profile Picture</label>
+                        <div>Select an image for your profile picture</div>
+                        <InputFile OnChange="LoadFile" class="form-control" accept="image/*"/>
+                    </div>
+                    <div class="center-children">
+                        <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
+                            type="submit" 
+                            data-bs-dismiss="modal"
+                            @onclick="UpdateProfilePicture">
+                            Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Close
+            </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     private string currentEditingFirstName = "";
@@ -16,11 +185,27 @@
 
     private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
     private IBrowserFile file;
+    private string sourcePath;
 
+    protected override async Task OnInitializedAsync()
+    {
+        sourcePath = await fileStorage.CreateSourcePath(loggedInUser?.FileName);
+    }
 
-    private void LoadFile(InputFileChangeEventArgs e)
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private async Task LoadFile(InputFileChangeEventArgs e)
     {
         file = e.File;
+        using var stream = file.OpenReadStream(maxFileSize);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        byte[] bytes = memoryStream.ToArray();
+        string base64Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        sourcePath = base64Image;
     }
 
     private void EditFirstName()
@@ -34,8 +219,8 @@
     private async Task SaveFirstName()
     {
         currentEditingFirstName = "";
-        var user = MapUser();
-        user.FirstName = editedFirstName;
+        loggedInUser.FirstName = editedFirstName;
+        var user = MapUser();        
         await userEndpoint.UpdateUserAsync(user);
     }
 
@@ -50,7 +235,25 @@
     private async Task SaveLastName()
     {
         currentEditingLastName = "";
+        loggedInUser.LastName = editedLastName;
+        var user = MapUser();        
+        await userEndpoint.UpdateUserAsync(user);
+    }
+
+    private void EditDisplayName()
+    {
+        editedDisplayName = loggedInUser.DisplayName;
+        currentEditingFirstName = "";
+        currentEditingLastName = "";
+        currentEditingDisplayName = loggedInUser.Id;
+    }
+
+    private async Task SaveDisplayName()
+    {
+        currentEditingDisplayName = "";
+        loggedInUser.DisplayName = editedDisplayName;
         var user = MapUser();
+        await userEndpoint.UpdateUserAsync(user);
     }
 
     private async Task UpdateProfilePicture()
@@ -62,12 +265,10 @@
 
         using Stream fileStream = file.OpenReadStream(maxFileSize);
         var fileId = await fileStorage.StoreFileAsync(fileStream, file.Name);
-
         await fileStream.DisposeAsync();
 
-        loggedInUser.FileName = fileId.ToString();
-
         var u = MapUser();
+        u.FileName = fileId.ToString();
 
         await userEndpoint.UpdateUserAsync(u);
         file = null;
@@ -78,7 +279,7 @@
         return new UserModel
         {
             Id = loggedInUser.Id,
-            ObjectIdentifier = loggedInUser.Id,
+            ObjectIdentifier = loggedInUser.ObjectIdentifier,
             FileName = loggedInUser.FileName,
             FirstName = loggedInUser.FirstName,
             LastName = loggedInUser.LastName,

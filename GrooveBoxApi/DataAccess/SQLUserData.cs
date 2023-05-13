@@ -33,6 +33,8 @@ public class SQLUserData : ISQLUserData
 
     public void UpdateUser(SQLUserModel user)
     {
-        _sql.SaveData("dbo.spUser_Update", user, DataBaseName);
+        _sql.SaveData("dbo.spUser_Update",
+            new { ObjectId = user.ObjectIdentifier, user.FirstName, user.LastName, user.DisplayName, user.EmailAddress }, 
+            DataBaseName);
     }
 }

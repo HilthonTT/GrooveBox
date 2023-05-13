@@ -97,7 +97,7 @@
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="user-dropdown">
         <li><a class="dropdown-item" href="/Create">Upload Media</a></li>
         <li><a class="dropdown-item" href="/Settings">Settings</a></li>
-        <li><a class="dropdown-item" href="/Profile/@loggedInUser?.ObjectIdentifier">Profile</a></li>
+        <li><a class="dropdown-item" href="/Profile/@loggedInUser?.Id">Profile</a></li>
         <li><hr class="dropdown-divider"></li>
         <AuthorizeView>
             <Authorized>
@@ -159,26 +159,22 @@
 
     private string GetGenreIconClass(GenreModel genre)
     {
-        if (genre.GenreName == "Music")
+        switch (genre.GenreName)
         {
-            return "oi-musical-note";
+            case "Music":
+                return "oi-musical-note";
+        
+            case "Gaming":
+                return "oi-bug";
+        
+            case "News":
+                return "oi-paperclip";
+        
+            case "Sports":
+                return "oi-badge";
+        
+            default:
+                return "oi-question-mark";
         }
-
-        if (genre.GenreName == "Gaming")
-        {
-            return "oi-bug";
-        }
-
-        if (genre.GenreName == "News")
-        {
-            return "oi-paperclip";
-        }
-
-        if (genre.GenreName == "Sports")
-        {
-            return "oi-badge";
-        }
-
-        return "oi-question-mark";
     }
 }

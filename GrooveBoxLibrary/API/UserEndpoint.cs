@@ -52,15 +52,7 @@ public class UserEndpoint : IUserEndpoint
 
     public async Task UpdateUserAsync(UserModel user)
     {
-        var data = new
-        {
-            user.FirstName,
-            user.LastName,
-            user.EmailAddress,
-            user.DisplayName
-        };
-
-        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/UpdateUser", data);
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/UpdateUser", user);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("User successfully been updated.");
