@@ -7,67 +7,57 @@
 @inject NavigationManager navManager
 
 <div class="row justify-content-center">
-    <div class="col-xl-10 col-lg-12">
+    <div class="col-xl-10 col-lg-12 card">
         <div class="row">
-            <div class="col-12">
-                <div class="close-button-section">
-                    <button class="btn btn-close" @onclick="ClosePage" />
-                </div>
-                @if (user is not null)
-                {
-                    <div class="card">
-                        <div class="row g-0">
-                            <div class="col-md-1">
-                                <div class="p-1">
-                                    @if (string.IsNullOrWhiteSpace(sourcePath) is false)
-                                    {
-                                        <div class="text-center p-3">
-                                            <img src="@sourcePath" 
-                                                class="card-img-top rounded-circle" 
-                                                alt="@user.FileName"
-                                                style="width: 100px; height: 100px;">
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="text-center p-3">
-                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                class="card-img-top rounded-circle" 
-                                                alt="Placeholder Image"
-                                                style="width: 100px; height: 100px;">
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-md-11">
-                                 <div class="card-body text-center">
-                                    <h4 class="card-title">@user.DisplayName</h4>
-                                    <p class="text-muted">
-                                        <span class="mx-2">
-                                            @user.UserSubscriptions.Count subscribers
-                                        </span>
-                                        <span>
-                                            @user.AuthoredFiles.Count medias
-                                        </span>
-                                    </p>
-                                    @if (user.Id != loggedInUser?.Id)
-                                    {
-                                        <button class="btn btn-secondary" @onclick="Subscribe">
-                                            @GetSubscribeClass()
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button class="btn btn-secondary w-100" @onclick="LoadEditProfilePage">
-                                            Edit Profile
-                                        </button>
-                                    }
-                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                }
+            <div class="close-button-section">
+                <button class="btn btn-close" @onclick="ClosePage" />
             </div>
+            @if (user is not null)
+            {
+                <div class="p-1">
+                    @if (string.IsNullOrWhiteSpace(sourcePath) is false)
+                    {
+                        <div class="text-center p-3">
+                            <img src="@sourcePath" 
+                                class="card-img-top rounded-circle" 
+                                alt="@user.FileName"
+                                style="width: 200px; height: 200px;">
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center p-3">
+                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                class="card-img-top rounded-circle" 
+                                alt="Placeholder Image"
+                                style="width: 200px; height: 200px;">
+                        </div>
+                    }
+                </div>
+                <div class="card-body text-center">
+                    <h4 class="card-title">@user.DisplayName</h4>
+                    <p class="text-muted">
+                        <span class="mx-2">
+                            @user.UserSubscriptions.Count subscribers
+                        </span>
+                        <span>
+                            @user.AuthoredFiles.Count medias
+                        </span>
+                    </p>
+                    @if (user.Id != loggedInUser?.Id)
+                    {
+                        <button class="btn btn-secondary" @onclick="Subscribe">
+                            @GetSubscribeClass()
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary w-100" @onclick="LoadEditProfilePage">
+                            Edit Profile
+                        </button>
+                    }
+                </div>
+            }
         </div>
         <div class="row mt-3">
             <hr />
