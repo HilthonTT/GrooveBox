@@ -19,13 +19,14 @@ public class MongoMediaFileData : IMediaFileData
 
     public async Task<List<MediaFileModel>> GetUsersMediaFilesAsync(string userId)
     {
-        var output = _cache.Get<List<MediaFileModel>>(userId);
+        string key = CacheName + userId;
+        var output = _cache.Get<List<MediaFileModel>>(key);
         if (output is null)
         {
             var results = await _mediaFiles.FindAsync(m => m.Author.Id == userId);
             output = await results.ToListAsync();
 
-            _cache.Set(userId, output, TimeSpan.FromMinutes(5));
+            _cache.Set(key, output, TimeSpan.FromMinutes(5));
         }
 
         return output;

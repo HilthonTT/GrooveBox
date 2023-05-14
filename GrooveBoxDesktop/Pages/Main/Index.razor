@@ -13,13 +13,11 @@
 <div class="row">
     <div class="col-12">
         <div class="input-group mb-3">
-          <input @oninput="((txt) => OnSearchInput((string)txt.Value))" @bind-value="searchText"
-                type="text" class="form-control" placeholder="Search" 
-                aria-label="Search" aria-describedby="search-button"/>
-          <button class="btn btn-outline-secondary" type="button" 
-                  id="search-button" @onclick="LoadResults">
-              Search
-          </button>
+            <MatStringField Label="Search" HelperText="Search your media with your title and description." 
+                FullWidth="true" @oninput="((txt) => OnSearchInput((string)txt.Value))" @bind-value="searchText"/>
+            <MatButton Raised Class="bg-secondary w-100 mt-2" Type="button" @onclick="LoadResults">
+                Search
+            </MatButton>
         </div>
     </div>
 </div>

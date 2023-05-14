@@ -3,46 +3,55 @@
 @inject ILoggedInUserModel loggedInUser
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject IVideoEndpoint videoEndpoint
+@inject IUserEndpoint userEndpoint
 @inject NavigationManager navManager
 
 @if (media is not null)
 {
-   <div class="row p-1">
-       <div class="col-xl-10 col-lg-12">
-            <div class="row">
-                <div class="close-button-section">
-                    <button class="btn btn-close" @onclick="ClosePage"></button>
-                </div>
-                <div class="col-12">
-                    @if (string.IsNullOrWhiteSpace(videoSource) is false)
-                    {
-                        <div class="text-center">
-                            <video controls height="600" width="900">
-                                <source src="@videoSource" type="video/mp4">
-                            </video>
-                        </div>
-                    }
-                    <div class="card mb-2">
-                        <div class="author">
-                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                alt="Author Profile Picture">
-                            <span class="custom-pointer" @onclick="LoadAuthorPage">@media.Author.DisplayName</span>
-                        </div>
-                        <div class="like-button" @onclick="VoteUp">
-                            <div class="text-uppercase">@GetUserVotesText()</div>
-                            <i class="oi @GetVoteClass()"></i>
-                           <div class="text-uppercase"> @GetUserVotesBottomText()</div>
-                        </div>
-                        <button class="btn @GetVoteClass()" @onclick="VoteUp">
-                            @GetUserVotesText()<i class="oi oi-thumb-up mx-1"></i>
-                        </button>
-                        <h1 class="title">@media.Title</h1>
-                        <p class="description">@media.Description</p>
-                    </div>
-                </div>
+    <MatCard Class="mb-4">
+        <MatCardContent>
+            <div class="close-button-section">
+                <button class="btn btn-close" @onclick="ClosePage"></button>
             </div>
-       </div>
-   </div>
+            @if (string.IsNullOrWhiteSpace(videoSource) is false)
+            {
+                <div class="text-center">
+                    <video controls height="800" width="1000">
+                        <source src="@videoSource" type="video/mp4">
+                    </video>
+                </div>
+            }
+            <div class="demo-mat-card-content">
+                <MatHeadline6 class="demo-mat-card-clean-margin">
+                    @media.Title
+                </MatHeadline6>
+                <MatSubtitle2 class="demo-mat-card-clean-margin custom-pointer" @onclick="LoadAuthorPage">
+                    by @media.Author.DisplayName
+                    <MatDivider />
+                    Uploaded the @media.DateCreated.ToString("mm/dd/yyyy")
+                </MatSubtitle2>
+            </div>
+            <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                @media.Description
+            </MatBody2>
+        </MatCardContent>
+        <MatCardActions>
+            <MatCardActionButtons>
+                @if (loggedInUser.Id != media.Author.Id)
+                {
+                    <MatButton Class="@GetSubscribeColor()" @onclick="Subscribe">Subscribe</MatButton>
+                }
+                else
+                {
+                    <MatButton @onclick="LoadEditPage">Edit</MatButton>
+                }
+            </MatCardActionButtons>
+            <MatCardActionIcons>
+                <MatIconButton Class="@GetVoteColor()" Icon="@MatIconNames.Favorite" @onclick="VoteUp"></MatIconButton>
+                <MatIconButton Icon="@MatIconNames.Dashboard"></MatIconButton>
+            </MatCardActionIcons>
+        </MatCardActions>
+    </MatCard>
 }
 
 @code {
@@ -50,6 +59,7 @@
     public string Id { get; set; }
 
     private MediaFileModel media;
+    private UserModel author;
     private string videoSource;
     private bool isBusy = false;
 
@@ -57,6 +67,10 @@
     {
         media = await mediaFileEndpoint.GetMediaFileAsync(Id);
         videoSource = await GetVideoSource();
+        if (media is not null)
+        {
+             author = await userEndpoint.GetByIdAsync(media.Author.Id);
+        }
     }
 
     private async Task<string> GetVideoSource()
@@ -68,6 +82,24 @@
         }
 
         return "";
+    }
+
+    private async Task Subscribe()
+    {
+        if (isBusy || author is null || author.Id == loggedInUser.Id)
+        {
+            return;
+        }
+
+        isBusy = true;
+
+        if (author.UserSubscriptions.Add(loggedInUser.Id) is false)
+        {
+            author.UserSubscriptions.Remove(loggedInUser.Id);
+        }
+
+        await userEndpoint.UpdateUserSubscriptionAsync(author.Id, loggedInUser.Id);
+        isBusy = false;
     }
 
     private async Task VoteUp()
@@ -103,53 +135,28 @@
         navManager.NavigateTo($"/Profile/{media.Author.Id}");
     }
 
-    private string GetVoteClass()
+    private void LoadEditPage()
     {
-        if (media.UserVotes is null || media.UserVotes.Count == 0)
+        navManager.NavigateTo($"/MediaEdit/{media.Id}");
+    }
+
+    private string GetSubscribeColor()
+    {
+        if (author is not null && author.UserSubscriptions.Contains(loggedInUser.Id))
         {
-            return "oi-thumb-up text-success";
+            return "text-danger";
         }
 
+        return "text-success";
+    }
+
+    private string GetVoteColor()
+    {
         if (media.UserVotes.Contains(loggedInUser.Id))
         {
-            return "oi-thumb-down text-danger";
+            return "text-success";
         }
 
-        return "oi-thumb-up text-success";
-    }
-
-    private string GetLikeDislikeClass(bool isLike)
-    {
-        if (media.UserVotes.Contains(loggedInUser?.Id) == isLike)
-        {
-            return "btn-secondary";
-        }
-
-        return "btn-outline-secondary";
-    }
-
-    private string GetUserVotesText()
-    {
-        if (media.UserVotes?.Count > 0)
-        {
-            return media.UserVotes.Count.ToString("00");
-        }
-
-        if (media.UserVotes?.Count == 0)
-        {
-            return "0";
-        }
-
-        return "N/A";
-    }
-
-    private string GetUserVotesBottomText()
-    {
-        if (media.UserVotes.Count > 1)
-        {
-            return "Upvotes";
-        }
-
-        return "Upvote";
+        return "";
     }
 }

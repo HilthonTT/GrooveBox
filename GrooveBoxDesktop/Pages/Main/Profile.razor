@@ -7,60 +7,44 @@
 @inject NavigationManager navManager
 
 <div class="row justify-content-center">
-    <div class="col-xl-10 col-lg-12 card">
+    <div class="col-xl-10 col-lg-12">
         <div class="row">
-            <div class="close-button-section">
-                <button class="btn btn-close" @onclick="ClosePage" />
-            </div>
-            @if (user is not null)
-            {
-                <div class="p-1">
-                    @if (string.IsNullOrWhiteSpace(sourcePath) is false)
+            <MatCard Class="w-100">
+                <MatCardContent>
+                    @if (string.IsNullOrWhiteSpace(sourcePath))
                     {
-                        <div class="text-center p-3">
-                            <img src="@sourcePath" 
-                                class="card-img-top rounded-circle" 
-                                alt="@user.FileName"
-                                style="width: 200px; height: 200px;">
-                        </div>
+                        <MatCardMedia Wide="true" ImageUrl="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available."/>
                     }
                     else
                     {
-                        <div class="text-center p-3">
-                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                class="card-img-top rounded-circle" 
-                                alt="Placeholder Image"
-                                style="width: 200px; height: 200px;">
-                        </div>
+                        <MatCardMedia Wide="true" ImageUrl="@sourcePath"/>
                     }
-                </div>
-                <div class="card-body text-center">
-                    <h4 class="card-title">@user.DisplayName</h4>
-                    <p class="text-muted">
-                        <span class="mx-2">
-                            @user.UserSubscriptions.Count subscribers
-                        </span>
-                        <span>
-                            @user.AuthoredFiles.Count medias
-                        </span>
-                    </p>
-                    @if (user.Id != loggedInUser?.Id)
-                    {
-                        <button class="btn btn-secondary" @onclick="Subscribe">
-                            @GetSubscribeClass()
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-secondary w-100" @onclick="LoadEditProfilePage">
-                            Edit Profile
-                        </button>
-                    }
-                </div>
-            }
+                    <div class="demo-mat-card-content">
+                        <MatHeadline6 class="demo-mat-card-clean-margin">
+                            @user?.DisplayName
+                        </MatHeadline6>
+                        <MatSubtitle2 class="demo-mat-card-clean-margin">
+                            @user?.FirstName @user?.LastName
+                            <MatDivider />
+                            You've published @user?.AuthoredFiles.Count medias.
+                        </MatSubtitle2>
+                    </div>
+                    <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                        <MatCardActionButtons>
+                            @if (loggedInUser.Id != user?.Id)
+                            {
+                                <MatButton Class="@GetSubscribeColor()" @onclick="Subscribe">Subscribe</MatButton>
+                            }
+                            else
+                            {
+                                <MatButton @onclick="LoadEditProfilePage">Edit Profile</MatButton>
+                            }
+                        </MatCardActionButtons>
+                    </MatBody2>
+                </MatCardContent>
+            </MatCard>
         </div>
         <div class="row mt-3">
-            <hr />
             <h5 class="page-heading mb-2">Medias</h5>
             @if (mediaFiles is not null)
             {
@@ -119,18 +103,14 @@
         navManager.NavigateTo("/EditProfile");
     }
 
-    private string GetSubscribeClass()
-    {
-        if (user.UserSubscriptions is null || user.UserSubscriptions.Count == 0)
+
+     private string GetSubscribeColor()
+     {
+        if (user is not null && user.UserSubscriptions.Contains(loggedInUser.Id))
         {
-            return "Subscribe";
+            return "text-danger";
         }
 
-        if (user.UserSubscriptions.Contains(loggedInUser.Id))
-        {
-            return "Unsubscribe";
-        }
-
-        return "Subscribe";
+        return "text-success";
     }
 }

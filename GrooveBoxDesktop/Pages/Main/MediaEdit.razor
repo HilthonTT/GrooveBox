@@ -8,143 +8,110 @@
 
 <h1 class="page-heading mb-2">Your Videos</h1>
 
-<div class="card-body">
+@if (media is not null)
+{
     <div class="row justify-content-center">
-        <div class="col-lg-10 col-md-8 card p-2">
-            <div class="row">
+        <div class="col-xl-10 col-lg-12">
+            <MatCard Class="w-100">
                 <div class="close-button-section">
-                    <button class="btn btn-close" @onclick="ClosePage"/>
+                    <button class="btn btn-close" @onclick="ClosePage"></button>
                 </div>
-                <div class="col-12">
-                    <div class="text-center">
-                        <h2>@media?.Title</h2>
-                        <div class="mb-3">
-                            @if (string.IsNullOrWhiteSpace(sourcePath) is false)
-                            {
-                                <div class="text-center p-3">
-                                    <img src="@sourcePath" 
-                                        class="card-img-top rounded-circle" 
-                                        alt="@sourcePath"
-                                        style="width: 300px; height: 300px;">
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="text-center p-3">
-                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                        class="card-img-top rounded-circle" 
-                                        alt="Placeholder Image"
-                                        style="width: 300px; height: 300px;">
-                                </div>
-                            }
-                            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editModal">
-                                Edit Media
-                            </button>
-                        </div>
-                        <div class="mb-3">
-                          <p class="h4">@media?.Title</p>
-                          <p class="h5">@media?.Description</p>
-                          <p class="h5">Date Created: @media?.DateCreated.ToString("dd/MM/yyyy")</p>
-                      </div>
-                    </div>
+                @if (string.IsNullOrWhiteSpace(sourcePath))
+                {
+                    <MatCardMedia Wide="true" ImageUrl="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available."/>
+                }
+                else
+                {
+                    <MatCardMedia Wide="true" ImageUrl="@sourcePath"/>
+                }
+                <div class="demo-mat-card-content">
+                    <MatHeadline6 class="demo-mat-card-clean-margin">
+                        @media.Title
+                    </MatHeadline6>
+                    <MatSubtitle2 class="demo-mat-card-clean-margin">
+                        @media.Author.DisplayName
+                        <MatDivider />
+                        Published on the @media.DateCreated.ToString("mm/dd/yyyy")
+                    </MatSubtitle2>
                 </div>
-            </div>
+                <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                    <MatCardActionButtons>
+                        <MatButton @onclick="(() => isEditDialogOpen = true)">Edit Media</MatButton>
+                    </MatCardActionButtons>
+                </MatBody2>
+            </MatCard>
         </div>
     </div>
-</div>
 
-<div class="modal fade" id="editModal" 
-    tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-        <div class="modal-header">
-        <h5 class="modal-title" id="editModalLabel">
-            Edit your media's thumbnail
-        </h5>
-        <button type="button" class="btn-close" 
-        data-bs-dismiss="modal" aria-label="Close" />
-        </div>
-        <div class="modal-body">
-        <EditForm Model="editingMedia" OnValidSubmit="UpdateMedia">
-            <DataAnnotationsValidator />
-            <div class="row justify-content-center">
-                <div class="col-xl-10 col-lg-12">
-                    <div class="row">
-                        <div class="col-4">
-                            @if (string.IsNullOrWhiteSpace(sourcePath))
+    <MatDialog @bind-IsOpen="isEditDialogOpen">
+        <MatCard Class="p-2">
+            <MatCardContent>
+                @if (string.IsNullOrWhiteSpace(sourcePath))
+                {
+                    <MatCardMedia Wide="true" ImageUrl="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available."/>
+                }
+                else
+                {
+                    <MatCardMedia Wide="true" ImageUrl="@sourcePath"/>
+                }
+                <InputFile OnChange="LoadFile" class="form-control"/>
+                <EditForm Model="editingMedia" OnValidSubmit="UpdateMedia">
+                    <MatDialogTitle>Edit your information.</MatDialogTitle>
+                    <MatDialogContent>
+                        <div class="mb-3">
+                            <MatStringField @bind-Value="editingMedia.Title" Label="Media" 
+                                Required="true" Type="text" FullWidth="true"
+                                HelperText="How would you like to name your media?" HelperTextPersistent="true"/>
+                        </div>
+                        <div class="mb-3">
+                            <MatTextField @bind-Value="editingMedia.Description" Label="Description"
+                                Required="true" TextArea="true" Type="text" FullWidth="true"
+                                HelperText="Describe your media, what does it contain?" HelperTextPersistent="true"/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="media-genre" class="form-label">Genres</label>
+                            <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
+                            @if (genres is not null)
                             {
-                                <img id="image-container" src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                class="img-fluid rounded mx-auto d-block mb-2" alt="Stock Image" />
+                                <MatSelectValue @bind-Value="editingMedia.GenreId" Items="genres"
+                                    ValueSelector="@(i=>i.Id)" Context="g" FullWidth="true">
+                                    <ItemTemplate>
+                                        <span>@g.GenreName</span>
+                                    </ItemTemplate>
+                                </MatSelectValue> 
+                            }
+                        </div>
+                    </MatDialogContent>
+                    <MatDialogActions Class="d-flex justify-content-between">
+                        <div>
+                            <MatButton Type="submit">Save</MatButton>
+                            <MatButton Type="button" OnClick="(() => isEditDialogOpen = false)">
+                                Cancel
+                            </MatButton>
+                        </div>
+                        <div>
+                            @if (archivingMedia is null)
+                            {
+                                <MatButton Type="button" @onclick="(() => archivingMedia = media)">
+                                    Archive
+                                </MatButton>
                             }
                             else
                             {
-                                    <img id="image-container" src="@sourcePath" 
-                                    class="img-fluid rounded mx-auto d-block mb-2" alt="Selected Image" />
+                                 <MatButton Type="button" @onclick="ArchiveMedia">
+                                     Archive
+                                 </MatButton>
+                                 <MatButton Type="button" @onclick="(() => archivingMedia = null)">
+                                     Cancel
+                                 </MatButton>
                             }
-                            <InputFile OnChange="LoadFile" class="form-control" accept="image/*"/>
                         </div>
-                        <div class="col-8">
-                            <div class="mb-3">
-                                <label for="media-title" class="form-label">Title</label>
-                                <div id="title-help" class="form-text">How would you like to name your media?</div>
-                                <InputText class="form-control" id="media-title" 
-                                aria-describedby="title-help" @bind-Value="editingMedia.Title" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="media-description" class="form-label">Description</label>
-                                <div id="description-help" class="form-text">Describe your media, what does it contain?</div>
-                                <InputTextArea class="form-control" id="media-description" 
-                                aria-describedby="description-help" @bind-Value="editingMedia.Description"/>
-                            </div>
-                            <div class="mb-3">
-                                <label for="media-genre" class="form-label">Genres</label>
-                                <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
-                                @if (genres is not null)
-                                {
-                                    <InputSelect class="form-select" aria-describedby="genre-help" @bind-Value="editingMedia.GenreId">
-                                        @foreach (var g in genres)
-                                        {
-                                            <option value="@g.Id">@g.GenreName</option>
-                                        }
-                                    </InputSelect>
-                                }
-                            </div>
-                            <div class="center-children">
-                                <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-                                    Update
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </EditForm>
-        </div>
-        <div class="modal-footer justify-content-between">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Close
-        </button>
-        @if (archivingMedia is null)
-        {
-            <button type="button" class="btn btn-danger" @onclick="(() => archivingMedia = media)">
-                Archive
-            </button>    
-        }
-        else
-        {
-            <div class="btn-group">
-                <button class="btn btn-danger" @onclick="ArchiveMedia">
-                    Are you sure? This can't be undone
-                </button>
-                <button class="btn btn-success" @onclick="(() => archivingMedia = null)">
-                    Cancel
-                </button>
-            </div>
-        }
-        </div>
-    </div>
-    </div>
-</div>
+                    </MatDialogActions>
+               </EditForm>
+            </MatCardContent>
+        </MatCard>
+    </MatDialog>
+}
 
 @code {
     [Parameter]
@@ -157,7 +124,7 @@
     private IBrowserFile file;
     private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
     private string sourcePath = "";
-    private bool showModal = false;
+    private bool isEditDialogOpen = false;
 
     protected override async Task OnInitializedAsync()
     {
