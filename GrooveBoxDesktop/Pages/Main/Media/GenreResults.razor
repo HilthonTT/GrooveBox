@@ -1,13 +1,12 @@
-﻿@page "/Results/{SearchText}"
+﻿@page "/GenreResults/{GenreName}/{SearchText}"
 @attribute [Authorize]
 @inject IMediaFileEndpoint mediaFileEndpoint
 @inject ILoggedInUserModel loggedInUser
-@inject IFileStorage fileStorage
 @inject ISecureStorageWrapper secureStorage
 @inject IJSRuntime JSInterop
 @inject NavigationManager navManager
 
-<h1 class="page-heading mb-2">Discover</h1>
+<h1 class="page-heading mb-2">@GenreName</h1>
 
 <div class="row">
     <div class="col-12">
@@ -23,9 +22,9 @@
 <div class="row">
     <div class="col-12">    
         <div class="row">
-            @if (mediaFiles?.Count > 0)
+            @if (medias?.Count > 0)
             {
-                <Virtualize Items="mediaFiles" Context="m" OverscanCount="10">
+                <Virtualize Items="medias" Context="m" OverscanCount="10">
                     <MediaComponent @key="m.Id" Media="m"/>
                 </Virtualize>
             }
@@ -44,16 +43,20 @@
 
 @code {
     [Parameter]
+    public string GenreName { get; set; }
+
+    [Parameter]
     public string SearchText { get; set; }
 
-    private List<MediaFileModel> mediaFiles;
+    private List<MediaFileModel> medias;
+    private List<GenreModel> genres;
 
     protected override async Task OnInitializedAsync()
     {
-        mediaFiles = await mediaFileEndpoint.GetAllAsync();
-        mediaFiles = mediaFiles.Where(m => m.Title.Contains(
-            SearchText, StringComparison.InvariantCultureIgnoreCase) ||
-            m.Description.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        medias = await mediaFileEndpoint.GetAllAsync();
+        medias = medias.Where(m => m.Genre.GenreName.ToLower() == GenreName.ToLower() &&
+            (m.Title.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase) ||
+            m.Description.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase))).ToList();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -89,11 +92,11 @@
     {
         if (string.IsNullOrWhiteSpace(SearchText))
         {
-            navManager.NavigateTo($"/");
+            navManager.NavigateTo($"/Genre/{GenreName}");
         }
         else
         {
-            navManager.NavigateTo($"/results/{SearchText}", true);
+            navManager.NavigateTo($"/GenreResults/{GenreName}/{SearchText}");
         }
     }
 }

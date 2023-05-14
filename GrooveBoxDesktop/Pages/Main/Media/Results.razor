@@ -1,0 +1,98 @@
+﻿@page "/Results/{SearchText}"
+@attribute [Authorize]
+@inject IMediaFileEndpoint mediaFileEndpoint
+@inject ILoggedInUserModel loggedInUser
+@inject ISecureStorageWrapper secureStorage
+@inject IJSRuntime JSInterop
+@inject NavigationManager navManager
+
+<h1 class="page-heading mb-2">Discover</h1>
+
+<div class="row">
+    <div class="col-12">
+        <div class="input-group mb-3">
+            <MatStringField Label="Search" HelperText="Search your media with your title and description." 
+                FullWidth="true" @oninput="((txt) => OnSearchInput((string)txt.Value))" @bind-value="SearchText"/>
+            <MatButton Raised Class="bg-secondary w-100 mt-2" Type="button" @onclick="LoadResults">
+                Search
+            </MatButton>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">    
+        <div class="row">
+            @if (mediaFiles?.Count > 0)
+            {
+                <Virtualize Items="mediaFiles" Context="m" OverscanCount="10">
+                    <MediaComponent @key="m.Id" Media="m"/>
+                </Virtualize>
+            }
+            else
+            {
+                <div class="alert alert-warning" role="alert">
+                  <h4 class="alert-heading">No Results Found.</h4>
+                  <p>There was unfortunately no results with your search.</p>
+                  <hr>
+                  <p class="mb-0">Please try again by searching something else.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string SearchText { get; set; }
+
+    private List<MediaFileModel> mediaFiles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        mediaFiles = await mediaFileEndpoint.GetAllAsync();
+        mediaFiles = mediaFiles.Where(m => m.Title.Contains(
+            SearchText, StringComparison.InvariantCultureIgnoreCase) ||
+            m.Description.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSInterop.InvokeVoidAsync("initializeTooltips");
+            await LoadFilterState();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        SearchText = await secureStorage.GetAsync(nameof(SearchText)) ?? "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText) is false)
+        {
+            await secureStorage.SetAsync(nameof(SearchText), SearchText);
+        }
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        SearchText = searchInput;
+        await SaveFilterState();
+    }
+
+    private void LoadResults()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            navManager.NavigateTo($"/");
+        }
+        else
+        {
+            navManager.NavigateTo($"/results/{SearchText}", true);
+        }
+    }
+}
