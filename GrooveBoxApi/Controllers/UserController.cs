@@ -70,10 +70,6 @@ public class UserController : ControllerBase
         return user;
     }
 
-    public record GetId(
-        string Id
-    );
-
     [HttpPost("GetById/{userId}")]
     public async Task<ApplicationUserModel> GetById(string userId)
     {

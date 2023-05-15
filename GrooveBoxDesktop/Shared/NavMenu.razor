@@ -48,7 +48,7 @@
             </Virtualize>     
             @if (loggedInUser.SubscribedAuthors.Count() > 3)
             {
-                <button @onclick="ShowAllAuthors">
+                <button class="btn btn-secondary" @onclick="ShowAllAuthors">
                     Show @GetUserSubscriptionCount() More
                 </button>
             }
