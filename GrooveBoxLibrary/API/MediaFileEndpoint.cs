@@ -5,53 +5,77 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 {
     private readonly IAPIHelper _apiHelper;
     private readonly ILogger<MediaFileEndpoint> _logger;
+    private readonly IMemoryCache _cache;
+    private const string CacheName = "MediaFilesData";
 
-    public MediaFileEndpoint(IAPIHelper apiHelper, ILogger<MediaFileEndpoint> logger)
+    public MediaFileEndpoint(IAPIHelper apiHelper,
+                             ILogger<MediaFileEndpoint> logger,
+                             IMemoryCache cache)
     {
         _apiHelper = apiHelper;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<List<MediaFileModel>> GetAllAsync()
-    {
-        using var response = await _apiHelper.ApiClient.GetAsync("api/MediaFile");
-        if (response.IsSuccessStatusCode)
+  {
+        var output = _cache.Get<List<MediaFileModel>>(CacheName);
+        if (output is null)
         {
-            var result = await response.Content.ReadAsAsync<List<MediaFileModel>>();
-            return result;
+            using var response = await _apiHelper.ApiClient.GetAsync("api/MediaFile");
+            if (response.IsSuccessStatusCode)
+            {
+                output = await response.Content.ReadAsAsync<List<MediaFileModel>>();
+                _cache.Set(CacheName, output, TimeSpan.FromHours(1));
+            }
+            else
+            {
+                throw new Exception(response.ReasonPhrase);
+            }
         }
-        else
-        {
-            throw new Exception(response.ReasonPhrase);
-        }
+
+        return output;
     }
 
     public async Task<List<MediaFileModel>> GetUserMediaFilesAsync(string userId)
     {
-        using var response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/user/{userId}");
-        if (response.IsSuccessStatusCode)
+        var output = _cache.Get<List<MediaFileModel>>(CacheName + userId);
+        if (output is null)
         {
-            var result = await response.Content.ReadAsAsync<List<MediaFileModel>>();
-            return result;
+            using var response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/user/{userId}");
+            if (response.IsSuccessStatusCode)
+            {
+                output = await response.Content.ReadAsAsync<List<MediaFileModel>>();
+                _cache.Set(CacheName, output, TimeSpan.FromHours(1));
+            }
+            else
+            {
+                throw new Exception(response.ReasonPhrase);
+            }
         }
-        else
-        {
-            throw new Exception(response.ReasonPhrase);
-        }
+
+        return output;
     }
 
     public async Task<MediaFileModel> GetMediaFileAsync(string id)
     {
-        using var response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/media/{id}");
-        if (response.IsSuccessStatusCode)
+        string key = CacheName + id;
+        var output = _cache.Get<MediaFileModel>(key);
+        if (output is null)
         {
-            var result = await response.Content.ReadAsAsync<MediaFileModel>();
-            return result;
+            using var response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/media/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                output = await response.Content.ReadAsAsync<MediaFileModel>();
+                _cache.Set(key, output, TimeSpan.FromHours(1));
+            }
+            else
+            {
+                throw new Exception(response.ReasonPhrase);
+            }
         }
-        else
-        {
-            throw new Exception(response.ReasonPhrase);
-        }
+
+        return output;
     }
 
     public async Task UpdateMediaFileAsync(MediaFileModel media)

@@ -1,4 +1,4 @@
-﻿@page "/Profile/{Id}"
+﻿@page "/Profile/{ObjectId}"
 @attribute [Authorize]
 @inject IUserEndpoint userEndpoint
 @inject IMediaFileEndpoint mediaFileEndpoint
@@ -58,7 +58,7 @@
 
 @code {
     [Parameter]
-    public string Id { get; set; }
+    public string ObjectId { get; set; }
 
     private bool isBusy = false;
     private string sourcePath;
@@ -67,7 +67,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        user = await userEndpoint.GetByObjectIdAsync(Id);
+        user = await userEndpoint.GetByObjectIdAsync(ObjectId);
         if (user is not null)
         {
             mediaFiles = await mediaFileEndpoint.GetUserMediaFilesAsync(user.Id);

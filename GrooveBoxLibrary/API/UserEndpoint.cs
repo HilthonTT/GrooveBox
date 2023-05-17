@@ -5,25 +5,38 @@ public class UserEndpoint : IUserEndpoint
 {
     private readonly IAPIHelper _apiHelper;
     private readonly ILogger<UserEndpoint> _logger;
+    private readonly IMemoryCache _cache;
 
-    public UserEndpoint(IAPIHelper apiHelper, ILogger<UserEndpoint> logger)
+    public UserEndpoint(IAPIHelper apiHelper,
+                        ILogger<UserEndpoint> logger,
+                        IMemoryCache cache)
     {
         _apiHelper = apiHelper;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<UserModel> GetByObjectIdAsync(string objectId)
     {
-        var content = new StringContent("");
-
-        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/GetByObjectId/{objectId}", content);
-        if (response.IsSuccessStatusCode)
+        var output = _cache.Get<UserModel>(objectId);
+        if (output is null)
         {
-            var result = await response.Content.ReadAsAsync<UserModel>();
-            return result;
+            var content = new StringContent("");
+            using var response = await _apiHelper.ApiClient.PostAsync($"api/User/GetByObjectId/{objectId}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                output = await response.Content.ReadAsAsync<UserModel>();
+                
+                _cache.Set(objectId, output, TimeSpan.FromHours(1));
+            }
+            else
+            {
+                _logger.LogError("Error: {response}", response.ReasonPhrase);
+                return new();
+            }
         }
-        _logger.LogError("Error: {response}", response.ReasonPhrase);
-        return null;
+
+        return output;
     }
 
     public async Task CreateUserAsync(CreateUserModel user)
