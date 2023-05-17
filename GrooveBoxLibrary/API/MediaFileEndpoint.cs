@@ -84,6 +84,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("PUT REQUEST SUCCESSFULL");
+            _cache.Remove(CacheName + media.Id);
         }
         else
         {
@@ -94,11 +95,11 @@ public class MediaFileEndpoint : IMediaFileEndpoint
     public async Task UpdateVoteMediaFileAsync(string mediaFileId, string userId)
     {
         var content = new StringContent("");
-
         using var response = await _apiHelper.ApiClient.PutAsync($"api/MediaFile/media/votes/{mediaFileId}/{userId}", content);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("PUT REQUEST SUCCESSFULL");
+            _cache.Remove(CacheName + mediaFileId);
         }
         else
         {
