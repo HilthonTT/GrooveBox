@@ -18,7 +18,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
     }
 
     public async Task<List<MediaFileModel>> GetAllAsync()
-  {
+    {
         var output = _cache.Get<List<MediaFileModel>>(CacheName);
         if (output is null)
         {
@@ -39,14 +39,15 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task<List<MediaFileModel>> GetUserMediaFilesAsync(string userId)
     {
-        var output = _cache.Get<List<MediaFileModel>>(CacheName + userId);
+        string key = GetCacheKey(userId);
+        var output = _cache.Get<List<MediaFileModel>>(key);
         if (output is null)
         {
             using var response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/user/{userId}");
             if (response.IsSuccessStatusCode)
             {
                 output = await response.Content.ReadAsAsync<List<MediaFileModel>>();
-                _cache.Set(CacheName, output, TimeSpan.FromHours(1));
+                _cache.Set(key, output, TimeSpan.FromHours(1));
             }
             else
             {
@@ -59,7 +60,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task<MediaFileModel> GetMediaFileAsync(string id)
     {
-        string key = CacheName + id;
+        string key = GetCacheKey(id);
         var output = _cache.Get<MediaFileModel>(key);
         if (output is null)
         {
@@ -118,5 +119,10 @@ public class MediaFileEndpoint : IMediaFileEndpoint
         {
             throw new Exception(response.ReasonPhrase);
         }
+    }
+
+    private static string GetCacheKey(string id)
+    {
+        return $"{CacheName}-{id}";
     }
 }

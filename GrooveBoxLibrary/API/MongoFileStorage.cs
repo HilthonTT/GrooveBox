@@ -20,7 +20,6 @@ public class MongoFileStorage : IFileStorage
     public async Task<string> StoreFileAsync(Stream fileStream, string fileName)
     {
         var gridFSBucket = await GetBucketAsync();
-
         var options = new GridFSUploadOptions
         {
             Metadata = new BsonDocument

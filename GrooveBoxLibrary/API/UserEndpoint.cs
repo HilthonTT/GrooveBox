@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Maui.ApplicationModel.Communication;
 
 namespace GrooveBoxLibrary.API;
 public class UserEndpoint : IUserEndpoint
