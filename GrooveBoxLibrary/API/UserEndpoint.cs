@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Maui.ApplicationModel.Communication;
 
 namespace GrooveBoxLibrary.API;
 public class UserEndpoint : IUserEndpoint
@@ -45,22 +46,25 @@ public class UserEndpoint : IUserEndpoint
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("User successfully been created.");
-            return;
         }
-        _logger.LogError("Error: {response}", response.ReasonPhrase);
+        else
+        {
+            _logger.LogError("Error: {response}", response.ReasonPhrase);
+        }
     }
 
     public async Task UpdateUserSubscriptionAsync(string authorId, string userId)
     {
         var content = new StringContent("");
-
         using var response = await _apiHelper.ApiClient.PostAsync($"api/User/UpdateUserSubscription/{authorId}/{userId}", content);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("Subscription successfully been updated.");
-            return;
         }
-        _logger.LogError("Error: {response}", response.ReasonPhrase);
+        else
+        {
+            _logger.LogError("Error: {response}", response.ReasonPhrase);
+        }
     }
 
     public async Task UpdateUserAsync(UserModel user)
@@ -68,9 +72,53 @@ public class UserEndpoint : IUserEndpoint
         using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/UpdateUser", user);
         if (response.IsSuccessStatusCode)
         {
-            _logger.LogInformation("User successfully been updated.");
-            return;
+            _logger.LogInformation("User successfully been updated.");;
         }
-        _logger.LogError("Error: {response}", response.StatusCode);
+        else
+        {
+            _logger.LogError("Error: {response}", response.StatusCode);
+        }
+    }
+
+    public async Task ConfirmEmailAsync(string userId, string token)
+    {
+        var content = new StringContent("");
+        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/ConfirmEmail/{userId}/{token}", content);
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("User of ID {userId} has confirmed their email.", userId);
+        }
+        else
+        {
+            _logger.LogError("Error: {response}", response.StatusCode);
+        }
+    }
+
+    public async Task ForgotPasswordAsync(string email)
+    {
+        var data = new { EmailAddress = email };
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/ForgotPassword", data);
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("User of email {email} has tempted to reset their password", email);
+        }
+        else
+        {
+            _logger.LogError("Error: {response}", response.StatusCode);
+        }
+    }
+
+    public async Task ResetEmailAsync(string objectId, string newEmail)
+    {
+        var data = new { UserId = objectId, NewEmail = newEmail };
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/ResetEmail", data);
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("User of ObjectId {objectId} has tempted to reset their password", objectId);
+        }
+        else
+        {
+            _logger.LogError("Error: {response}", response.StatusCode);
+        }
     }
 }

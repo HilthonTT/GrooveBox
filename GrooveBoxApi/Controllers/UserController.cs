@@ -1,9 +1,11 @@
 ﻿using GrooveBoxApi.Data;
 using GrooveBoxApi.DataAccess;
+using GrooveBoxApi.Models;
 using GrooveBoxApiLibrary.Models;
 using GrooveBoxApiLibrary.MongoDataAccess;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -18,16 +20,19 @@ public class UserController : ControllerBase
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IUserData _userData;
     private readonly ILogger<UserController> _logger;
+    private readonly IEmailSender _emailSender;
 
     public UserController(ApplicationDbContext context,
                           UserManager<IdentityUser> userManager,
                           IUserData userData,
-                          ILogger<UserController> logger)
+                          ILogger<UserController> logger,
+                          IEmailSender emailSender)
     {
         _context = context;
         _userManager = userManager;
         _userData = userData;
         _logger = logger;
+        _emailSender = emailSender;
     }
 
     [HttpGet]
@@ -126,15 +131,6 @@ public class UserController : ControllerBase
             _logger.LogError("Error: {response}", ex.Message);
         }
     }
-    
-    public record UserRegistrationModel(
-        string FirstName,
-        string LastName,
-        string DisplayName,
-        string EmailAddress,
-        string Password,
-        string FileName
-    );
 
     [AllowAnonymous]
     [Route("Register")]
@@ -149,7 +145,7 @@ public class UserController : ControllerBase
                 IdentityUser newUser = new()
                 {
                     Email = user.EmailAddress,
-                    EmailConfirmed = true,
+                    EmailConfirmed = false,  // Set email confirmation to false initially
                     UserName = user.DisplayName,
                 };
 
@@ -157,25 +153,19 @@ public class UserController : ControllerBase
 
                 if (result.Succeeded)
                 {
-                    existingUser = await _userManager.FindByEmailAsync(user.EmailAddress);
-                    
-                    if (existingUser is null)
-                    {
-                        return BadRequest();
-                    }
+                    // Generate the email confirmation token
+                    string token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
 
-                    //string token = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
-                    //string confirmationLink = Url.Action(
-                    //    "ConfirmEmail",
-                    //    "Account",
-                    //    new { userId = existingUser.Id, token },
-                    //    Request.Scheme);
+                    // Construct the confirmation link URL
+                    string callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = newUser.Id, token }, Request.Scheme);
 
-                    //CreatedAtAction("RegisterConfirmation", new { message = "User registered successfully." });
+                    // Send the confirmation email
+                    await _emailSender.SendEmailAsync(user.EmailAddress, "Confirm your account",
+                        $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
 
                     var mongoUser = new UserModel()
                     {
-                        ObjectIdentifier = existingUser.Id,
+                        ObjectIdentifier = newUser.Id,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         DisplayName = user.DisplayName,
@@ -193,12 +183,10 @@ public class UserController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpGet("confirm-email")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [HttpGet("ConfirmEmail")]
     public async Task<IActionResult> ConfirmEmail(string userId, string token)
     {
-        if (userId is null || token is null)
+        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
         {
             return BadRequest("User ID and token are required.");
         }
@@ -221,10 +209,66 @@ public class UserController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpGet("email-confirmed")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult EmailConfirmed()
+    [HttpPost("ForgotPassword")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
     {
-        return Ok("Email confirmed successfully.");
+        if (ModelState.IsValid)
+        {
+            var user = await _userManager.FindByEmailAsync(model.EmailAddress);
+            if (user is null || await _userManager.IsEmailConfirmedAsync(user) is false)
+            {
+                // To prevent user enumeration attacks, don't reveal that the user does not exist or is not confirmed
+                return Ok(); // You can customize the response based on your requirements
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var callbackUrl = Url.Action("ResetPassword", "Account", new { email = model.EmailAddress, token }, Request.Scheme);
+
+            // Send the password reset email
+            await _emailSender.SendEmailAsync(model.EmailAddress, "Reset Password",
+                $"Please reset your password by <a href='{callbackUrl}'>clicking here</a>.");
+
+            // Password reset email sent
+            return Ok(); // You can customize the response based on your requirements
+        }
+
+        // Invalid model state
+        return BadRequest(ModelState); // You can customize the response based on your requirements
+    }
+
+    [AllowAnonymous]
+    [HttpPost("ResetEmail")]
+    public async Task<IActionResult> ResetEmail(ResetEmailModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            var mongoUser = await _userData.GetUserFromAuthenticationAsync(user.Id);
+            if (user is null || mongoUser is null)
+            {
+                // To prevent user enumeration attacks, don't reveal that the user does not exist
+                return Ok(); // You can customize the response based on your requirements
+            }
+
+            // Generate a change email token for the new email address
+            string token = await _userManager.GenerateChangeEmailTokenAsync(user, model.NewEmail);
+
+            // Send the confirmation email to the old email address
+            string callbackUrl = Url.Action("ConfirmEmailChange", "Account",
+                new { userId = user.Id, email = model.NewEmail, token }, Request.Scheme);
+
+            // Customize the confirmation email content
+            string confirmationEmailContent = $"Please confirm your email change by clicking the following link: <a href='{callbackUrl}'>Confirm Email Change</a>.";
+            await _emailSender.SendEmailAsync(user.Email, "Confirm Email Change", confirmationEmailContent);
+
+            mongoUser.EmailAddress = model.NewEmail;
+            await _userData.UpdateUserAsync(mongoUser);
+
+            // Email confirmation sent to the old email address
+            return Ok("Email Successfully resetted"); // You can customize the response based on your requirements
+        }
+
+        // Invalid model state
+        return BadRequest(ModelState); // You can customize the response based on your requirements
     }
 }
