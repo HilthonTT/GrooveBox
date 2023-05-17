@@ -69,7 +69,7 @@
         videoSource = await GetVideoSource();
         if (media is not null)
         {
-             author = await userEndpoint.GetByIdAsync(media.Author.Id);
+             author = await userEndpoint.GetByObjectIdAsync(media.Author.ObjectIdentifier);
         }
     }
 

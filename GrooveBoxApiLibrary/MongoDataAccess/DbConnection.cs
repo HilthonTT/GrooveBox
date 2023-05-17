@@ -12,7 +12,7 @@ public class DbConnection : IDbConnection
     public MongoClient Client { get; private set; }
     public IMongoCollection<GenreModel> GenreCollection { get; private set; }
     public IMongoCollection<MediaFileModel> MediaFileCollection { get; private set; }
-    public IMongoCollection<MongoUserModel> UserCollection { get; private set; }
+    public IMongoCollection<UserModel> UserCollection { get; private set; }
 
     public DbConnection(IConfiguration config)
     {
@@ -23,6 +23,6 @@ public class DbConnection : IDbConnection
 
         GenreCollection = _db.GetCollection<GenreModel>(GenreCollectionName);
         MediaFileCollection = _db.GetCollection<MediaFileModel>(MediaFilesCollectionName);
-        UserCollection = _db.GetCollection<MongoUserModel>(UserCollectionName);
+        UserCollection = _db.GetCollection<UserModel>(UserCollectionName);
     }
 }

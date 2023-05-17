@@ -12,11 +12,11 @@ public class UserEndpoint : IUserEndpoint
         _logger = logger;
     }
 
-    public async Task<UserModel> GetByIdAsync(string userId)
+    public async Task<UserModel> GetByObjectIdAsync(string objectId)
     {
-        HttpContent requestContent = new StringContent("");
+        var content = new StringContent("");
 
-        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/GetById/{userId}", requestContent);
+        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/GetByObjectId/{objectId}", content);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<UserModel>();
@@ -39,9 +39,9 @@ public class UserEndpoint : IUserEndpoint
 
     public async Task UpdateUserSubscriptionAsync(string authorId, string userId)
     {
-        HttpContent requestContent = new StringContent("");
+        var content = new StringContent("");
 
-        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/UpdateUserSubscription/{authorId}/{userId}", requestContent);
+        using var response = await _apiHelper.ApiClient.PostAsync($"api/User/UpdateUserSubscription/{authorId}/{userId}", content);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("Subscription successfully been updated.");

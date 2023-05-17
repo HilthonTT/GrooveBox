@@ -14,7 +14,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task<List<MediaFileModel>> GetAllAsync()
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.GetAsync("api/MediaFile");
+        using var response = await _apiHelper.ApiClient.GetAsync("api/MediaFile");
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<List<MediaFileModel>>();
@@ -28,7 +28,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task<List<MediaFileModel>> GetUserMediaFilesAsync(string userId)
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/user/{userId}");
+        using var response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/user/{userId}");
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<List<MediaFileModel>>();
@@ -42,7 +42,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task<MediaFileModel> GetMediaFileAsync(string id)
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/media/{id}");
+        using var response = await _apiHelper.ApiClient.GetAsync($"api/MediaFile/media/{id}");
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<MediaFileModel>();
@@ -56,7 +56,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task UpdateMediaFileAsync(MediaFileModel media)
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PutAsJsonAsync($"api/MediaFile/media", media);
+        using var response = await _apiHelper.ApiClient.PutAsJsonAsync($"api/MediaFile/media", media);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("PUT REQUEST SUCCESSFULL");
@@ -69,9 +69,9 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task UpdateVoteMediaFileAsync(string mediaFileId, string userId)
     {
-        HttpContent requestContent = new StringContent("");
+        var content = new StringContent("");
 
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PutAsync($"api/MediaFile/media/votes/{mediaFileId}/{userId}", requestContent);
+        using var response = await _apiHelper.ApiClient.PutAsync($"api/MediaFile/media/votes/{mediaFileId}/{userId}", content);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("PUT REQUEST SUCCESSFULL");
@@ -84,7 +84,7 @@ public class MediaFileEndpoint : IMediaFileEndpoint
 
     public async Task CreateMediaFileAsync(MediaFileModel media)
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.PostAsJsonAsync($"api/MediaFile", media);
+        using var response = await _apiHelper.ApiClient.PostAsJsonAsync($"api/MediaFile", media);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("POST REQUEST SUCCESSFULL");

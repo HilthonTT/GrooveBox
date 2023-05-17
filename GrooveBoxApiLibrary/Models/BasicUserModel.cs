@@ -11,7 +11,7 @@ public class BasicUserModel
         
     }
 
-    public BasicUserModel(MongoUserModel user)
+    public BasicUserModel(UserModel user)
     {
         Id = user.Id;
         DisplayName = user.DisplayName;

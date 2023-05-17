@@ -1,5 +1,5 @@
 ﻿namespace GrooveBoxApiLibrary.Models;
-public class MongoUserModel
+public class UserModel
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]

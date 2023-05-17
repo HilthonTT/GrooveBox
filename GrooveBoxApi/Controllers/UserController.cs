@@ -2,7 +2,6 @@
 using GrooveBoxApi.DataAccess;
 using GrooveBoxApiLibrary.Models;
 using GrooveBoxApiLibrary.MongoDataAccess;
-using GrooveBoxApiLibrary.SqlDataAccess;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,19 +16,16 @@ public class UserController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly ISqlUserData _sqlUserData;
     private readonly IUserData _userData;
     private readonly ILogger<UserController> _logger;
 
     public UserController(ApplicationDbContext context,
                           UserManager<IdentityUser> userManager,
-                          ISqlUserData sqlUserData,
                           IUserData userData,
                           ILogger<UserController> logger)
     {
         _context = context;
         _userManager = userManager;
-        _sqlUserData = sqlUserData;
         _userData = userData;
         _logger = logger;
     }
@@ -39,9 +35,7 @@ public class UserController : ControllerBase
     public async Task<ApplicationUserModel> GetMyId()
     {
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        SqlUserModel userModel = await _sqlUserData.GetUserById(userId);
-        MongoUserModel mongoUser = await _userData.GetUserFromAuthenticationAsync(userModel.ObjectIdentifier);
+        var mongoUser = await _userData.GetUserFromAuthenticationAsync(userId);
 
         ApplicationUserModel user = new()
         {
@@ -67,36 +61,36 @@ public class UserController : ControllerBase
         return user;
     }
 
-    [HttpPost("GetById/{userId}")]
-    public async Task<ApplicationUserModel> GetById(string userId)
+    [HttpPost("GetByObjectId/{objectId}")]
+    public async Task<ApplicationUserModel> GetByObjectId(string objectId)
     {
         try
         {
-            var mongoUser = await _userData.GetUserAsync(userId);
-            var sqlUser = await _sqlUserData.GetUserByObjectId(mongoUser.ObjectIdentifier);
+            var user = await _userData.GetUserFromAuthenticationAsync(objectId);
 
-            ApplicationUserModel user = new()
+            ApplicationUserModel u = new()
             {
-                Id = mongoUser.Id,
-                ObjectIdentifier = mongoUser.ObjectIdentifier,
-                FileName = mongoUser.FileName,
-                FirstName = mongoUser.FirstName,
-                LastName = mongoUser.LastName,
-                DisplayName = mongoUser.DisplayName,
-                EmailAddress = mongoUser.EmailAddress,
-                AuthoredFiles = mongoUser.AuthoredFiles,
-                VotedOnFiles = mongoUser.VotedOnFiles,
-                SubscribedAuthors = mongoUser.SubscribedAuthors,
-                UserSubscriptions = mongoUser.UserSubscriptions,
+                Id = user.Id,
+                ObjectIdentifier = user.ObjectIdentifier,
+                FileName = user.FileName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DisplayName = user.DisplayName,
+                EmailAddress = user.EmailAddress,
+                AuthoredFiles = user.AuthoredFiles,
+                VotedOnFiles = user.VotedOnFiles,
+                SubscribedAuthors = user.SubscribedAuthors,
+                UserSubscriptions = user.UserSubscriptions,
             };
 
             var userRoles = from ur in _context.UserRoles
                             join r in _context.Roles on ur.RoleId equals r.Id
                             select new { ur.UserId, ur.RoleId, r.Name };
 
-            user.Roles = userRoles.Where(x => x.UserId == sqlUser.Id).ToDictionary(key => key.RoleId, val => val.Name);
+            user.Roles = userRoles.Where(x => x.UserId == user.ObjectIdentifier)
+                .ToDictionary(key => key.RoleId, val => val.Name);
 
-            return user;
+            return u;
         }
         catch (Exception ex)
         {
@@ -113,19 +107,12 @@ public class UserController : ControllerBase
 
     [HttpPost]
     [Route("UpdateUser")]
-    public async Task UpdateUser(MongoUserModel user)
+    public async Task UpdateUser(UserModel user)
     {
         try
         {
             await _userData.UpdateUserAsync(user);
-            var sqlUser = await _sqlUserData.GetUserByObjectId(user.ObjectIdentifier);
-            sqlUser.FirstName = user.FirstName;
-            sqlUser.LastName = user.LastName;
-            sqlUser.DisplayName = user.DisplayName;
-            sqlUser.EmailAddress = user.EmailAddress;
-
-            await _sqlUserData.UpdateUser(sqlUser);
-            var u = _context.Users.Where(x => x.Id == sqlUser.Id).First();
+            var u = _context.Users.Where(x => x.Id == user.ObjectIdentifier).First();
 
             u.Id = user.Id;
             u.Email = user.EmailAddress;
@@ -141,7 +128,6 @@ public class UserController : ControllerBase
     }
     
     public record UserRegistrationModel(
-        string ObjectIdentifier,
         string FirstName,
         string LastName,
         string DisplayName,
@@ -163,6 +149,7 @@ public class UserController : ControllerBase
                 IdentityUser newUser = new()
                 {
                     Email = user.EmailAddress,
+                    EmailConfirmed = true,
                     UserName = user.DisplayName,
                 };
 
@@ -177,30 +164,18 @@ public class UserController : ControllerBase
                         return BadRequest();
                     }
 
-                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
-                    var confirmationLink = Url.Action(
-                        "ConfirmEmail",
-                        "Account",
-                        new { userId = existingUser.Id, token },
-                        Request.Scheme);
+                    //string token = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
+                    //string confirmationLink = Url.Action(
+                    //    "ConfirmEmail",
+                    //    "Account",
+                    //    new { userId = existingUser.Id, token },
+                    //    Request.Scheme);
 
-                    CreatedAtAction("RegisterConfirmation", new { message = "User registered successfully." });
+                    //CreatedAtAction("RegisterConfirmation", new { message = "User registered successfully." });
 
-                    SqlUserModel u = new()
+                    var mongoUser = new UserModel()
                     {
-                        Id = existingUser.Id,
-                        ObjectIdentifier = user.ObjectIdentifier,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        DisplayName = user.DisplayName,
-                        EmailAddress = user.EmailAddress,
-                    };
-
-                    await _sqlUserData.InsertUser(u);
-
-                    var mongoUser = new MongoUserModel()
-                    {
-                        ObjectIdentifier = user.ObjectIdentifier,
+                        ObjectIdentifier = existingUser.Id,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         DisplayName = user.DisplayName,

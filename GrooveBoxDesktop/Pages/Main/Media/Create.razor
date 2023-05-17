@@ -55,7 +55,7 @@
                             <div id="genre-help" class="form-text">Select a genre which best suits your media.</div>
                             @if (genres is not null)
                             {
-                                <MatSelectValue @bind-Value="media.GenreId" Items="genres" 
+                                <MatSelectValue @bind-Value="media.GenreId" Items="genres"
                                     ValueSelector="@(i=>i.Id)" Context="g" FullWidth="true">
                                     <ItemTemplate>
                                         <span>@g.GenreName</span>
@@ -128,7 +128,7 @@
         }
 
         using Stream thumbnailStream = thumbnailFile.OpenReadStream(maxFileSizeThumbnail);
-        var thumbnailFileId = await fileStorage.StoreFileAsync(thumbnailStream, thumbnailFile.Name);
+        string thumbnailFileId = await fileStorage.StoreFileAsync(thumbnailStream, thumbnailFile.Name);
 
         if (thumbnailFile is null)
         {
@@ -137,7 +137,7 @@
         }
 
         using Stream mediaStream = mediaFile.OpenReadStream(maxFileSizeMedia);
-        var mediaFileId = await fileStorage.StoreFileAsync(mediaStream, mediaFile.Name);
+        string mediaFileId = await fileStorage.StoreFileAsync(mediaStream, mediaFile.Name);
 
         await mediaStream.DisposeAsync();
         await thumbnailStream.DisposeAsync();
@@ -146,8 +146,8 @@
         {
             Title = media.Title,
             Description = media.Description,
-            ThumbnailPath = thumbnailFileId.ToString(),
-            FilePath = mediaFileId.ToString(),
+            ThumbnailPath = thumbnailFileId,
+            FilePath = mediaFileId,
             Genre = genres.FirstOrDefault(g => g.Id == media.GenreId),
             Author = new BasicUserModel(loggedInUser),
         };

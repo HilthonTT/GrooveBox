@@ -28,8 +28,7 @@ public class APIHelper : IAPIHelper
     {
         string api = _config["api"];
 
-        _apiClient = new();
-        _apiClient.BaseAddress = new Uri(api);
+        _apiClient = new() { BaseAddress = new Uri(api) };
         _apiClient.DefaultRequestHeaders.Accept.Clear();
         _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
@@ -43,7 +42,7 @@ public class APIHelper : IAPIHelper
             new KeyValuePair<string ,string>("password", password)
         });
 
-        using HttpResponseMessage response = await _apiClient.PostAsync("/Token", data);
+        using var response = await _apiClient.PostAsync("/Token", data);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<AuthenticatedUser>();
@@ -67,7 +66,7 @@ public class APIHelper : IAPIHelper
         _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _apiClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
-        using HttpResponseMessage response = await _apiClient.GetAsync("/api/user/GetMyId");
+        using var response = await _apiClient.GetAsync("/api/user/GetMyId");
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsAsync<LoggedInUserModel>();

@@ -6,7 +6,6 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Mvc;
-using GrooveBoxApiLibrary.SqlDataAccess;
 using GrooveBoxApiLibrary.MongoDataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,8 +37,6 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddMemoryCache();
 
-builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
-builder.Services.AddTransient<ISqlUserData, SqlUserData>();
 builder.Services.AddTransient<IDbConnection, DbConnection>();
 builder.Services.AddTransient<IGenreData, MongoGenreData>();
 builder.Services.AddTransient<IUserData, MongoUserData>();

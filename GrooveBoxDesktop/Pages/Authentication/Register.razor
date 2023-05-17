@@ -1,6 +1,5 @@
 ﻿@page "/Register"
 @inject IUserEndpoint userEndpoint
-@inject IOidGenerator oidGenerator
 @inject IAuthenticationService authService
 @inject IFileStorage fileStorage
 @inject IMatDialogService matDialogService
@@ -84,17 +83,14 @@
         {
             errorMessage = "";
 
-            string objectId = await oidGenerator.GenerateOidAsync();
             UserModel u = new()
             {
-                ObjectIdentifier = objectId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 DisplayName = user.DisplayName,
                 EmailAddress = user.EmailAddress,
                 FileName = "",
             };
-            user.ObjectIdentifier = objectId;
 
             await userEndpoint.CreateUserAsync(user);;
             AuthenticatedUserModel result = await authService.Login(new() { Email = user.EmailAddress, Password = user.Password });

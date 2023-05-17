@@ -16,8 +16,7 @@ public class VideoEndpoint : IVideoEndpoint
 
     public async Task<string> GetVideoUrlAsync(string id)
     {
-        using HttpResponseMessage response = await _apiHelper.ApiClient.GetAsync($"/api/videos/{id}");
-
+        using var response = await _apiHelper.ApiClient.GetAsync($"/api/videos/{id}");
         if (response.IsSuccessStatusCode)
         {
             string responseBody = await response.Content.ReadAsStringAsync();

@@ -17,7 +17,7 @@ public class MongoFileStorage : IFileStorage
         _cache = cache;
     }
 
-    public async Task<ObjectId> StoreFileAsync(Stream fileStream, string fileName)
+    public async Task<string> StoreFileAsync(Stream fileStream, string fileName)
     {
         var gridFSBucket = await GetBucketAsync();
 
@@ -30,7 +30,8 @@ public class MongoFileStorage : IFileStorage
                 }
         };
 
-        return await gridFSBucket.UploadFromStreamAsync(fileName, fileStream, options);
+        var objectId = await gridFSBucket.UploadFromStreamAsync(fileName, fileStream, options);
+        return objectId.ToString();
     }
 
     public async Task<string> CreateSourcePath(string fileId)

@@ -65,7 +65,7 @@
     protected override async Task OnInitializedAsync()
     {
         sourcePath = await fileStorage.CreateSourcePath(Media.ThumbnailPath);
-        author = await userEndpoint.GetByIdAsync(Media.Author.Id);
+        author = await userEndpoint.GetByObjectIdAsync(Media.Author.Id);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

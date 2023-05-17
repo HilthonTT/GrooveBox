@@ -67,7 +67,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        user = await userEndpoint.GetByIdAsync(Id);
+        user = await userEndpoint.GetByObjectIdAsync(Id);
         if (user is not null)
         {
             mediaFiles = await mediaFileEndpoint.GetUserMediaFilesAsync(user.Id);

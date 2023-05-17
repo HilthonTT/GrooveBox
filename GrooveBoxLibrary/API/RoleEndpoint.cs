@@ -28,14 +28,16 @@ public class RoleEndpoint : IRoleEndpoint
 
     public async Task CreateRoleAsync(string roleName)
     {
-        HttpContent requestContent = new StringContent("");
-        using var response = await _apiHelper.ApiClient.PostAsync($"api/Role/Admin/CreateRole/{roleName}", requestContent);
+        var content = new StringContent("");
+        using var response = await _apiHelper.ApiClient.PostAsync($"api/Role/Admin/CreateRole/{roleName}", content);
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("The role of name {roleName} has been added to the database", roleName);
-            return;
         }
-        throw new Exception(response.ReasonPhrase);
+        else
+        {
+            throw new Exception(response.ReasonPhrase);
+        }
     }
 
     public async Task AddUserToRoleAsync(string userId, string roleName)
@@ -46,9 +48,11 @@ public class RoleEndpoint : IRoleEndpoint
         {
             _logger.LogInformation("The user of Id {userId} has gained the role of name {roleName}",
                 data.userId, data.roleName);
-            return;
         }
-        throw new Exception(response.ReasonPhrase);
+        else
+        {
+            throw new Exception(response.ReasonPhrase);
+        }
     }
 
     public async Task RemoveUserFromRoleAsync(string userId, string roleName)
@@ -59,8 +63,10 @@ public class RoleEndpoint : IRoleEndpoint
         {
             _logger.LogInformation("The user of Id {userId} has lost the role of name {roleName}",
                 data.userId, data.roleName);
-            return;
         }
-        throw new Exception(response.ReasonPhrase);
+        else
+        {
+            throw new Exception(response.ReasonPhrase);
+        }
     }
 }

@@ -46,9 +46,9 @@ public static class RegisterServices
         builder.Services.AddTransient<IVideoEndpoint, VideoEndpoint>();
         builder.Services.AddTransient<IConnectionStringEndpoint, ConnectionStringEndpoint>();
         builder.Services.AddTransient<IAPIDbConnection, APIDbConnection>();
-        builder.Services.AddTransient<IOidGenerator, OidGenerator>();
-        builder.Services.AddTransient<ISecureStorageWrapper, SecureStorageWrapper>();
         builder.Services.AddTransient<IRoleEndpoint, RoleEndpoint>();
+
+        builder.Services.AddSingleton<ISecureStorageWrapper, SecureStorageWrapper>();
     }
     private static IConfiguration AddConfiguration()
     {

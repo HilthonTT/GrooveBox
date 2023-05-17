@@ -7,6 +7,6 @@ public interface IDbConnection
     string GenreCollectionName { get; }
     IMongoCollection<MediaFileModel> MediaFileCollection { get; }
     string MediaFilesCollectionName { get; }
-    IMongoCollection<MongoUserModel> UserCollection { get; }
+    IMongoCollection<UserModel> UserCollection { get; }
     string UserCollectionName { get; }
 }
