@@ -17,21 +17,18 @@ public class UserController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ISQLUserData _SQLuserData;
     private readonly IUserData _userData;
     private readonly ILogger<UserController> _logger;
 
     public UserController(ApplicationDbContext context,
                           UserManager<IdentityUser> userManager,
-                          RoleManager<IdentityRole> roleManager,
                           ISQLUserData SQLuserData,
                           IUserData userData,
                           ILogger<UserController> logger)
     {
         _context = context;
         _userManager = userManager;
-        _roleManager = roleManager;
         _SQLuserData = SQLuserData;
         _userData = userData;
         _logger = logger;
@@ -103,7 +100,7 @@ public class UserController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
+            _logger.LogError("Error: {response}", ex.Message);
             return null;
         }
     }
@@ -166,7 +163,6 @@ public class UserController : ControllerBase
                 IdentityUser newUser = new()
                 {
                     Email = user.EmailAddress,
-                    EmailConfirmed = true,
                     UserName = user.DisplayName,
                 };
 
@@ -175,11 +171,20 @@ public class UserController : ControllerBase
                 if (result.Succeeded)
                 {
                     existingUser = await _userManager.FindByEmailAsync(user.EmailAddress);
-
+                    
                     if (existingUser is null)
                     {
                         return BadRequest();
                     }
+
+                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
+                    var confirmationLink = Url.Action(
+                        "ConfirmEmail",
+                        "Account",
+                        new { userId = existingUser.Id, token },
+                        Request.Scheme);
+
+                    CreatedAtAction("RegisterConfirmation", new { message = "User registered successfully." });
 
                     SQLUserModel u = new()
                     {
@@ -212,60 +217,39 @@ public class UserController : ControllerBase
         return BadRequest();
     }
 
-    [HttpPost]
-    [Authorize]
-    public async Task CreateRole(string roleName)
+    [AllowAnonymous]
+    [HttpGet("confirm-email")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmEmail(string userId, string token)
     {
-        IdentityRole identityRole = new()
+        if (userId is null || token is null)
         {
-            Name = roleName,
-        };
+            return BadRequest("User ID and token are required.");
+        }
 
-        IdentityResult result = await _roleManager.CreateAsync(identityRole);
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            return BadRequest("User not found.");
+        }
 
+        var result = await _userManager.ConfirmEmailAsync(user, token);
         if (result.Succeeded)
         {
-            _logger.LogInformation("The role {RoleName} has been created.", identityRole.Name);
+            return Ok("Email confirmed successfully.");
+        }
+        else
+        {
+            return BadRequest("Email confirmation failed.");
         }
     }
 
-    [HttpGet]
-    [Authorize(Roles = "Admin")]
-    [Route("Admin/GetAllRoles")]
-    public Dictionary<string, string> GetAllRoles()
+    [AllowAnonymous]
+    [HttpGet("email-confirmed")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult EmailConfirmed()
     {
-        var roles = _context.Roles.ToDictionary(x => x.Id, x => x.Name);
-
-        return roles;
-    }
-
-    [HttpPost]
-    [Authorize(Roles = "Admin")]
-    [Route("Admin/AddUserToRole")]
-    public async Task AddUserToRole(UserRolePairModel pairing)
-    {
-        string loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var user = await _userManager.FindByIdAsync(pairing.UserId);
-
-        _logger.LogInformation("Admin {Admin} added user {User} to role {Role}",
-            loggedInUserId, pairing.UserId, pairing.RoleName);
-
-        await _userManager.AddToRoleAsync(user, pairing.RoleName);
-    }
-
-    [HttpPost]
-    [Authorize(Roles = "Admin")]
-    [Route("Admin/RemoveUserFromRole")]
-    public async Task RemoveUserFromRole(UserRolePairModel pairing)
-    {
-        string loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var user = await _userManager.FindByIdAsync(pairing.UserId);
-
-        _logger.LogInformation("Admin {Admin} removed user {User} from role {Role}",
-            loggedInUserId, pairing.UserId, pairing.RoleName);
-
-        await _userManager.RemoveFromRoleAsync(user, pairing.RoleName);
+        return Ok("Email confirmed successfully.");
     }
 }

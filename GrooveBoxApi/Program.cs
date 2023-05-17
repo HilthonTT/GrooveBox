@@ -26,19 +26,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedEmail = true;
+})
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddMemoryCache();
 
 builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
 builder.Services.AddTransient<ISQLUserData, SQLUserData>();
-builder.Services.AddSingleton<IDbConnection, DbConnection>();
-builder.Services.AddSingleton<IGenreData, MongoGenreData>();
-builder.Services.AddSingleton<IUserData, MongoUserData>();
-builder.Services.AddSingleton<IMediaFileData, MongoMediaFileData>();
+builder.Services.AddTransient<IDbConnection, DbConnection>();
+builder.Services.AddTransient<IGenreData, MongoGenreData>();
+builder.Services.AddTransient<IUserData, MongoUserData>();
+builder.Services.AddTransient<IMediaFileData, MongoMediaFileData>();
 
 builder.Services.AddSingleton<IMongoClient>(provider =>
 {

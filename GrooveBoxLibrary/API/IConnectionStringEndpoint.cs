@@ -2,5 +2,5 @@
 
 public interface IConnectionStringEndpoint
 {
-    Task<ConnectionModel> GetConnectionStrings();
+    Task<DbConnectionModel> GetConnectionStrings();
 }

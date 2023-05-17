@@ -19,8 +19,7 @@ public class MongoFileStorage : IFileStorage
 
     public async Task<ObjectId> StoreFileAsync(Stream fileStream, string fileName)
     {
-        var conn = await _connection.CreateAsync(_connectionStringEndpoint);
-        GridFSBucket gridFSBucket = new(conn.Client.GetDatabase(conn.DbName));
+        var gridFSBucket = await GetBucketAsync();
 
         var options = new GridFSUploadOptions
         {
@@ -57,8 +56,7 @@ public class MongoFileStorage : IFileStorage
 
     private async Task<Stream> GetFileAsync(string fileId)
     {
-        var conn = await _connection.CreateAsync(_connectionStringEndpoint);
-        GridFSBucket gridFSBucket = new(conn.Client.GetDatabase(conn.DbName));
+        var gridFSBucket = await GetBucketAsync();
 
         var fileStream = new MemoryStream();
         await gridFSBucket.DownloadToStreamAsync(new ObjectId(fileId), fileStream);
@@ -72,5 +70,20 @@ public class MongoFileStorage : IFileStorage
         await stream.CopyToAsync(memoryStream);
         byte[] bytes = memoryStream.ToArray();
         return Convert.ToBase64String(bytes);
+    }
+
+    private async Task<GridFSBucket> GetBucketAsync()
+    {
+        string key = "GridFSBucket";
+        var output = _cache.Get<GridFSBucket>(key);
+        if (output is null)
+        {
+            var conn = await _connection.CreateAsync(_connectionStringEndpoint);
+            output = new GridFSBucket(conn.Client.GetDatabase(conn.DbName));
+            
+            _cache.Set(key, output, TimeSpan.FromHours(5));
+        }
+
+        return output;
     }
 }

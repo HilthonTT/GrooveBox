@@ -39,15 +39,16 @@ public static class RegisterServices
         builder.Services.AddSingleton<IAPIHelper, APIHelper>();
 
         //Personal Services
-        builder.Services.AddSingleton<IUserEndpoint, UserEndpoint>();
-        builder.Services.AddSingleton<IFileStorage, MongoFileStorage>();
-        builder.Services.AddSingleton<IGenreEndpoint, GenreEndpoint>();
-        builder.Services.AddSingleton<IMediaFileEndpoint, MediaFileEndpoint>();
-        builder.Services.AddSingleton<IVideoEndpoint, VideoEndpoint>();
-        builder.Services.AddSingleton<IConnectionStringEndpoint, ConnectionStringEndpoint>();
-        builder.Services.AddSingleton<IAPIDbConnection, APIDbConnection>();
-        builder.Services.AddSingleton<IOidGenerator, OidGenerator>();
-        builder.Services.AddSingleton<ISecureStorageWrapper, SecureStorageWrapper>();
+        builder.Services.AddTransient<IUserEndpoint, UserEndpoint>();
+        builder.Services.AddTransient<IFileStorage, MongoFileStorage>();
+        builder.Services.AddTransient<IGenreEndpoint, GenreEndpoint>();
+        builder.Services.AddTransient<IMediaFileEndpoint, MediaFileEndpoint>();
+        builder.Services.AddTransient<IVideoEndpoint, VideoEndpoint>();
+        builder.Services.AddTransient<IConnectionStringEndpoint, ConnectionStringEndpoint>();
+        builder.Services.AddTransient<IAPIDbConnection, APIDbConnection>();
+        builder.Services.AddTransient<IOidGenerator, OidGenerator>();
+        builder.Services.AddTransient<ISecureStorageWrapper, SecureStorageWrapper>();
+        builder.Services.AddTransient<IRoleEndpoint, RoleEndpoint>();
     }
     private static IConfiguration AddConfiguration()
     {

@@ -8,12 +8,12 @@ public class ConnectionStringEndpoint : IConnectionStringEndpoint
         _apiHelper = apiHelper;
     }
 
-    public async Task<ConnectionModel> GetConnectionStrings()
+    public async Task<DbConnectionModel> GetConnectionStrings()
     {
         using HttpResponseMessage response = await _apiHelper.ApiClient.GetAsync("api/ConnectionString");
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadAsAsync<ConnectionModel>();
+            var result = await response.Content.ReadAsAsync<DbConnectionModel>();
             return result;
         }
         else
