@@ -1,5 +1,4 @@
-﻿namespace GrooveBoxLibrary.DataAccess;
-
+﻿namespace GrooveBoxApiLibrary.MongoDataAccess;
 public interface IGenreData
 {
     Task CreateGenreAsync(GenreModel genre);

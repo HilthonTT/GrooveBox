@@ -1,7 +1,7 @@
-﻿namespace GrooveBoxLibrary.DataAccess;
+﻿namespace GrooveBoxApiLibrary.MongoDataAccess;
 public class MongoUserData : IUserData
 {
-    private readonly IMongoCollection<UserModel> _users;
+    private readonly IMongoCollection<MongoUserModel> _users;
     private readonly IDbConnection _db;
     private readonly IMemoryCache _cache;
 
@@ -12,15 +12,15 @@ public class MongoUserData : IUserData
         _cache = cache;
     }
 
-    public async Task<List<UserModel>> GetUsersAsync()
+    public async Task<List<MongoUserModel>> GetUsersAsync()
     {
         var results = await _users.FindAsync(_ => true);
         return await results.ToListAsync();
     }
 
-    public async Task<UserModel> GetUserAsync(string id)
+    public async Task<MongoUserModel> GetUserAsync(string id)
     {
-        var output = _cache.Get<UserModel>(id);
+        var output = _cache.Get<MongoUserModel>(id);
         if (output == null)
         {
             var results = await _users.FindAsync(u => u.Id == id);
@@ -31,20 +31,20 @@ public class MongoUserData : IUserData
         return output;
     }
 
-    public async Task<UserModel> GetUserFromAuthenticationAsync(string objectId)
+    public async Task<MongoUserModel> GetUserFromAuthenticationAsync(string objectId)
     {
         var results = await _users.FindAsync(u => u.ObjectIdentifier == objectId);
         return await results.FirstOrDefaultAsync();
     }
 
-    public Task CreateUserAsync(UserModel user)
+    public Task CreateUserAsync(MongoUserModel user)
     {
         return _users.InsertOneAsync(user);
     }
 
-    public Task UpdateUserAsync(UserModel user)
+    public Task UpdateUserAsync(MongoUserModel user)
     {
-        var filter = Builders<UserModel>.Filter.Eq("Id", user.Id);
+        var filter = Builders<MongoUserModel>.Filter.Eq("Id", user.Id);
         return _users.ReplaceOneAsync(filter, user, new ReplaceOptions { IsUpsert = true });
     }
 
@@ -59,7 +59,7 @@ public class MongoUserData : IUserData
         try
         {
             var db = client.GetDatabase(_db.DbName);
-            var authorsInTransaction = db.GetCollection<UserModel>(_db.UserCollectionName);
+            var authorsInTransaction = db.GetCollection<MongoUserModel>(_db.UserCollectionName);
             var author = await (await authorsInTransaction.FindAsync(a => a.Id == authorId)).FirstAsync();
 
             bool isSubscribed = author.UserSubscriptions.Add(userId);
@@ -70,7 +70,7 @@ public class MongoUserData : IUserData
 
             await authorsInTransaction.ReplaceOneAsync(session, a => a.Id == authorId, author);
 
-            var usersInTransaction = db.GetCollection<UserModel>(_db.UserCollectionName);
+            var usersInTransaction = db.GetCollection<MongoUserModel>(_db.UserCollectionName);
             var user = await GetUserAsync(userId);
 
             if (isSubscribed)

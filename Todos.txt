@@ -1,0 +1,4 @@
+
+Add Email Confirmation with password reset and email change.
+Add compression for file upload.
+Add dark theme and light theme.

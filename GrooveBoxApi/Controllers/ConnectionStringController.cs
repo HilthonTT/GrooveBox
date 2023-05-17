@@ -1,4 +1,4 @@
-﻿using GrooveBoxLibrary.Models;
+﻿using GrooveBoxApiLibrary.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;

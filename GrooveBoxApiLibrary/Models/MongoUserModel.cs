@@ -1,9 +1,8 @@
-﻿using GrooveBoxApiLibrary.Models;
-
-namespace GrooveBoxApi.DataAccess;
-
-public class ApplicationUserModel
+﻿namespace GrooveBoxApiLibrary.Models;
+public class MongoUserModel
 {
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
     public string ObjectIdentifier { get; set; }
     public string FileName { get; set; }

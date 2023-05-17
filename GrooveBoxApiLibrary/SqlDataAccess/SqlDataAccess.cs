@@ -1,9 +1,8 @@
-﻿using Dapper;
+﻿using System.Data;
 using Microsoft.Data.SqlClient;
-using System.Data;
+using Dapper;
 
-namespace GrooveBoxApi.DataAccess;
-
+namespace GrooveBoxApiLibrary.SqlDataAccess;
 public class SqlDataAccess : ISqlDataAccess
 {
     private readonly IConfiguration _config;
@@ -18,23 +17,23 @@ public class SqlDataAccess : ISqlDataAccess
         return _config.GetConnectionString(name);
     }
 
-    public List<T> LoadData<T, U>(string storedProcedure, U parameters, string connectionStringName)
+    public async Task<List<T>> LoadDataAsync<T, U>(string storedProcedure, U parameters, string connectionStringName)
     {
         string connectionString = GetConnectionString(connectionStringName);
 
         using IDbConnection connection = new SqlConnection(connectionString);
-        List<T> rows = connection.Query<T>(storedProcedure, parameters,
-            commandType: CommandType.StoredProcedure).ToList();
+        var rows = await connection.QueryAsync<T>(storedProcedure, parameters,
+            commandType: CommandType.StoredProcedure);
 
-        return rows;
+        return rows.ToList();
     }
 
-    public void SaveData<T>(string storedProcedure, T parameters, string connectionStringName)
+    public async Task SaveDataAsync<T>(string storedProcedure, T parameters, string connectionStringName)
     {
         string connectionString = GetConnectionString(connectionStringName);
 
         using IDbConnection connection = new SqlConnection(connectionString);
-        connection.Execute(storedProcedure, parameters,
+        await connection.ExecuteAsync(storedProcedure, parameters,
             commandType: CommandType.StoredProcedure);
     }
 }

@@ -1,6 +1,5 @@
-﻿namespace GrooveBoxApi.Models;
-
-public class SQLUserModel
+﻿namespace GrooveBoxApiLibrary.Models;
+public class SqlUserModel
 {
     public string Id { get; set; }
     public string ObjectIdentifier { get; set; }

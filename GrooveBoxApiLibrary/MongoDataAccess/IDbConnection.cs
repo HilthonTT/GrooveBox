@@ -1,5 +1,4 @@
-﻿namespace GrooveBoxLibrary.DataAccess;
-
+﻿namespace GrooveBoxApiLibrary.MongoDataAccess;
 public interface IDbConnection
 {
     MongoClient Client { get; }
@@ -8,6 +7,6 @@ public interface IDbConnection
     string GenreCollectionName { get; }
     IMongoCollection<MediaFileModel> MediaFileCollection { get; }
     string MediaFilesCollectionName { get; }
-    IMongoCollection<UserModel> UserCollection { get; }
+    IMongoCollection<MongoUserModel> UserCollection { get; }
     string UserCollectionName { get; }
 }

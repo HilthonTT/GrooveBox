@@ -10,6 +10,19 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "GrooveBoxData", "GrooveBoxD
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrooveBoxDesktop", "GrooveBoxDesktop\GrooveBoxDesktop.csproj", "{8ADC51AA-168B-4CBB-9864-63570D40098E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1593E602-BEC8-46F5-9F7A-C3ACF7D17632}"
+	ProjectSection(SolutionItems) = preProject
+		Todos.txt = Todos.txt
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrooveBoxApiLibrary", "GrooveBoxApiLibrary\GrooveBoxApiLibrary.csproj", "{8BE729B4-EA23-4357-8833-45D9925826D3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{9D74887F-4C7A-4B7B-A5F7-49001F909355}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Desktop", "Desktop", "{8549A903-9F31-42A4-97E5-03C73656CFCA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{40902A5D-57D2-44B3-BB42-D71238EDC3B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,9 +49,20 @@ Global
 		{8ADC51AA-168B-4CBB-9864-63570D40098E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8ADC51AA-168B-4CBB-9864-63570D40098E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8ADC51AA-168B-4CBB-9864-63570D40098E}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{8BE729B4-EA23-4357-8833-45D9925826D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BE729B4-EA23-4357-8833-45D9925826D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BE729B4-EA23-4357-8833-45D9925826D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BE729B4-EA23-4357-8833-45D9925826D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F02B3259-876D-443D-AD26-E6445474710A} = {8549A903-9F31-42A4-97E5-03C73656CFCA}
+		{E6EACEEA-3528-4A2D-A37B-BFB551451BE6} = {9D74887F-4C7A-4B7B-A5F7-49001F909355}
+		{3D0AF0DE-6F3D-4C52-A9BC-D0CCCBCA9EF8} = {40902A5D-57D2-44B3-BB42-D71238EDC3B8}
+		{8ADC51AA-168B-4CBB-9864-63570D40098E} = {8549A903-9F31-42A4-97E5-03C73656CFCA}
+		{8BE729B4-EA23-4357-8833-45D9925826D3} = {9D74887F-4C7A-4B7B-A5F7-49001F909355}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {355CEEC5-6DD3-40DB-BDCC-D8740E10FC63}

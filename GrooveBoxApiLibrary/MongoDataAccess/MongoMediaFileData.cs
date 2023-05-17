@@ -1,4 +1,4 @@
-﻿namespace GrooveBoxLibrary.DataAccess;
+﻿namespace GrooveBoxApiLibrary.MongoDataAccess;
 public class MongoMediaFileData : IMediaFileData
 {
     private readonly IDbConnection _db;
@@ -88,7 +88,7 @@ public class MongoMediaFileData : IMediaFileData
 
             await mediaFileInTransaction.ReplaceOneAsync(session, m => m.Id == mediaFileId, mediaFile);
 
-            var usersInTransaction = db.GetCollection<UserModel>(_db.UserCollectionName);
+            var usersInTransaction = db.GetCollection<MongoUserModel>(_db.UserCollectionName);
             var user = await _userData.GetUserAsync(userId);
 
             if (isUpVote)
@@ -125,7 +125,7 @@ public class MongoMediaFileData : IMediaFileData
             var mediaFileInTransaction = db.GetCollection<MediaFileModel>(_db.MediaFilesCollectionName);
             await mediaFileInTransaction.InsertOneAsync(session, mediaFile);
 
-            var usersInTransaction = db.GetCollection<UserModel>(_db.UserCollectionName);
+            var usersInTransaction = db.GetCollection<MongoUserModel>(_db.UserCollectionName);
             var user = await _userData.GetUserAsync(mediaFile.Author.Id);
             user.AuthoredFiles.Add(new BasicMediaFileModel(mediaFile));
             await usersInTransaction.ReplaceOneAsync(session, u => u.Id == user.Id, user);

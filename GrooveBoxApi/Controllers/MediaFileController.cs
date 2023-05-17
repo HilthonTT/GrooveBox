@@ -1,5 +1,5 @@
-﻿using GrooveBoxLibrary.DataAccess;
-using GrooveBoxLibrary.Models;
+﻿using GrooveBoxApiLibrary.Models;
+using GrooveBoxApiLibrary.MongoDataAccess;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

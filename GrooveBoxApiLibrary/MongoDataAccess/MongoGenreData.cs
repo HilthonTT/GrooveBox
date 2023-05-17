@@ -1,4 +1,4 @@
-﻿namespace GrooveBoxLibrary.DataAccess;
+﻿namespace GrooveBoxApiLibrary.MongoDataAccess;
 public class MongoGenreData : IGenreData
 {
     private readonly IMongoCollection<GenreModel> _genres;
