@@ -49,6 +49,7 @@ public static class RegisterServices
         builder.Services.AddTransient<IRoleEndpoint, RoleEndpoint>();
 
         builder.Services.AddSingleton<ISecureStorageWrapper, SecureStorageWrapper>();
+        builder.Services.AddSingleton<IFileProcessor, FileProcessor>();
     }
     private static IConfiguration AddConfiguration()
     {

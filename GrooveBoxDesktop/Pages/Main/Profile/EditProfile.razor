@@ -3,6 +3,7 @@
 @inject IUserEndpoint userEndpoint
 @inject ILoggedInUserModel loggedInUser
 @inject IFileStorage fileStorage
+@inject IFileProcessor fileProcessor
 @inject NavigationManager navManager
 
 <h1 class="page-heading mb-2">Edit Profile</h1>
@@ -152,7 +153,7 @@
     private bool isDataDialogOpen = false;
     private bool isEmailDialogOpen = false;
     private bool isPasswordDialogOpen = false;
-    private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
+    private long maxFileSize = 1024 * 1024 * 10; // represents 5MB
     private IBrowserFile file;
     private string sourcePath;
 
@@ -211,9 +212,7 @@
             return;
         }
 
-        using Stream fileStream = file.OpenReadStream(maxFileSize);
-        var fileId = await fileStorage.StoreFileAsync(fileStream, file.Name);
-        await fileStream.DisposeAsync();
+        string fileId = await fileProcessor.CompressAndStoreImageAsync(file);
 
         var u = MapUser();
         u.FileName = fileId.ToString();
