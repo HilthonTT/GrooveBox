@@ -218,13 +218,40 @@ public class UserController : ControllerBase
                 return Ok();
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = Url.Action("ResetPassword", "Account", new { email = model.EmailAddress, token }, Request.Scheme);
+            string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            string callbackUrl = Url.Action("ResetPassword", "User",
+                new { email = model.EmailAddress, token, password = model.Password }, Request.Scheme);
 
             await _emailSender.SendEmailAsync(model.EmailAddress, "Reset Password",
                 $"Please reset your password by <a href='{callbackUrl}'>clicking here</a>.");
 
             return Ok();
+        }
+
+        return BadRequest(ModelState);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("ResetPassword")]
+    public async Task<IActionResult> ResetPassword(string email, string token, string password)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user is null)
+            {
+                return Ok();
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, token, password);
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Password reset failed. Please try again.");
+            }
         }
 
         return BadRequest(ModelState);

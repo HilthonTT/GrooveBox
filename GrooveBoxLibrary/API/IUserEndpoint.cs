@@ -4,7 +4,7 @@ public interface IUserEndpoint
 {
     Task ConfirmEmailAsync(string userId, string token);
     Task CreateUserAsync(CreateUserModel user);
-    Task ForgotPasswordAsync(string email);
+    Task ForgotPasswordAsync(string token, string email, string password);
     Task<UserModel> GetByObjectIdAsync(string userId);
     Task ResetEmailAsync(string objectId, string newEmail);
     Task UpdateUserAsync(UserModel user);

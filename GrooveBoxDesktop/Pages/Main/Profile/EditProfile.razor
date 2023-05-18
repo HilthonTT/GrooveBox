@@ -38,6 +38,7 @@
                         <MatButton @onclick="(() => isProfileDialogOpen = true)">Edit Profile Picture</MatButton>
                         <MatButton @onclick="(() => isDataDialogOpen = true)">Edit Data</MatButton>
                         <MatButton @onclick="(() => isEmailDialogOpen = true)">Change Email</MatButton>
+                        <MatButton @onclick="(() => isPasswordDialogOpen = true)">Change Password</MatButton>
                     </MatCardActionButtons>
                 </MatBody2>
             </MatCardContent>
@@ -124,12 +125,33 @@
    </EditForm>
 </MatDialog>
 
+<MatDialog @bind-IsOpen="isPasswordDialogOpen">
+   <EditForm Model="password" OnValidSubmit="UpdatePasswordRequest">
+       <DataAnnotationsValidator />
+       <ValidationSummary />
+        <MatDialogTitle>Edit your password.</MatDialogTitle>
+        <MatDialogContent>
+            <div class="mb-3">
+                <MatStringField @bind-Value="password.Password" Label="New Password" 
+                    Required="true" Type="text" FullWidth="true"
+                    HelperText="Change your password with your new one." HelperTextPersistent="true"/>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton Type="submit">Request</MatButton>
+            <MatButton Type="button" OnClick="(() => isPasswordDialogOpen = false)">Cancel</MatButton>
+        </MatDialogActions>
+   </EditForm>
+</MatDialog>
+
 @code {
     private EditUserModel user = new();
     private EditEmailModel email = new();
+    private EditPasswordModel password = new();
     private bool isProfileDialogOpen = false;
     private bool isDataDialogOpen = false;
     private bool isEmailDialogOpen = false;
+    private bool isPasswordDialogOpen = false;
     private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
     private IBrowserFile file;
     private string sourcePath;
@@ -173,6 +195,12 @@
         loggedInUser.EmailAddress = email.NewEmail;
         await userEndpoint.ResetEmailAsync(loggedInUser.ObjectIdentifier, loggedInUser.EmailAddress);
         isEmailDialogOpen = false;
+    }
+
+    private async Task UpdatePasswordRequest()
+    {
+        await userEndpoint.ForgotPasswordAsync(loggedInUser.Token, loggedInUser.EmailAddress, password.Password);
+        isPasswordDialogOpen = false;
     }
 
     private async Task UpdateProfilePicture()

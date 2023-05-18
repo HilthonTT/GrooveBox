@@ -93,9 +93,9 @@ public class UserEndpoint : IUserEndpoint
         }
     }
 
-    public async Task ForgotPasswordAsync(string email)
+    public async Task ForgotPasswordAsync(string token, string email, string password)
     {
-        var data = new { EmailAddress = email };
+        var data = new { Token = token, EmailAddress = email, Password = password };
         using var response = await _apiHelper.ApiClient.PostAsJsonAsync("api/User/ForgotPassword", data);
         if (response.IsSuccessStatusCode)
         {
