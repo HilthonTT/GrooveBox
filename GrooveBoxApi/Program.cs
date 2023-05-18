@@ -7,6 +7,8 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Mvc;
 using GrooveBoxApiLibrary.MongoDataAccess;
+using GrooveBoxApi.Helper;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -33,8 +35,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
-builder.Services.AddControllersWithViews();
 
+builder.Services.Configure<SmtpSettings>(config.GetSection("SmtpSettings"));
+builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddTransient<IDbConnection, DbConnection>();

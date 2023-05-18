@@ -15,4 +15,25 @@ public class UserModel
     public List<BasicMediaFileModel> VotedOnFiles { get; set; } = new();
     public HashSet<string> UserSubscriptions { get; set; } = new();
     public List<BasicUserModel> SubscribedAuthors { get; set; } = new();
+
+    public UserModel()
+    {
+        
+    }
+
+    public UserModel(ILoggedInUserModel loggedInUser)
+    {
+        Id = loggedInUser.Id;
+        ObjectIdentifier = loggedInUser.ObjectIdentifier;
+        FileName = loggedInUser.FileName;
+        FirstName = loggedInUser.FirstName;
+        LastName = loggedInUser.LastName;
+        DisplayName = loggedInUser.DisplayName;
+        EmailAddress = loggedInUser.EmailAddress;
+        Roles = loggedInUser.Roles;
+        AuthoredFiles = loggedInUser.AuthoredFiles;
+        VotedOnFiles = loggedInUser.VotedOnFiles;
+        UserSubscriptions = loggedInUser.UserSubscriptions;
+        SubscribedAuthors = loggedInUser.SubscribedAuthors;
+    }
 }

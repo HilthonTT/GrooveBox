@@ -8,16 +8,20 @@
 <h1 class="page-heading mb-2">Edit Profile</h1>
 
 <div class="row justify-content-center">
-    <div class="col-xl-10 col-lg-12">
+    <div class="col-xl-10 col-lg-12 m-2">
         <MatCard Class="w-100">
             <MatCardContent>
                 @if (string.IsNullOrWhiteSpace(sourcePath))
                 {
-                    <MatCardMedia Wide="true" ImageUrl="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available."/>
+                    <MatCardMedia 
+                        Wide="true"
+                        ImageUrl="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available."/>
                 }
                 else
                 {
-                    <MatCardMedia Wide="true" ImageUrl="@sourcePath"/>
+                    <MatCardMedia 
+                        Wide="true" 
+                        ImageUrl="@sourcePath"/>
                 }
                 <div class="demo-mat-card-content">
                     <MatHeadline6 class="demo-mat-card-clean-margin">
@@ -33,6 +37,7 @@
                     <MatCardActionButtons>
                         <MatButton @onclick="(() => isProfileDialogOpen = true)">Edit Profile Picture</MatButton>
                         <MatButton @onclick="(() => isDataDialogOpen = true)">Edit Data</MatButton>
+                        <MatButton @onclick="(() => isEmailDialogOpen = true)">Change Email</MatButton>
                     </MatCardActionButtons>
                 </MatBody2>
             </MatCardContent>
@@ -69,7 +74,7 @@
     </MatDialogContent>
     <MatDialogActions>
         <MatButton OnClick="@UpdateProfilePicture">Save</MatButton>
-        <MatButton OnClick="(() => isProfileDialogOpen = false)">Cancel</MatButton>
+        <MatButton Type="button" OnClick="(() => isProfileDialogOpen = false)">Cancel</MatButton>
     </MatDialogActions>
 </MatDialog>
 
@@ -95,16 +100,36 @@
         </MatDialogContent>
         <MatDialogActions>
             <MatButton Type="submit">Save</MatButton>
-            <MatButton OnClick="(() => isDataDialogOpen = false)">Cancel</MatButton>
+            <MatButton Type="button" OnClick="(() => isDataDialogOpen = false)">Cancel</MatButton>
+        </MatDialogActions>
+   </EditForm>
+</MatDialog>
+
+<MatDialog @bind-IsOpen="isEmailDialogOpen">
+   <EditForm Model="email" OnValidSubmit="UpdateEmailRequest">
+       <DataAnnotationsValidator />
+       <ValidationSummary />
+        <MatDialogTitle>Edit your email address.</MatDialogTitle>
+        <MatDialogContent>
+            <div class="mb-3">
+                <MatStringField @bind-Value="email.NewEmail" Label="New Email Address" 
+                    Required="true" Type="text" FullWidth="true"
+                    HelperText="Change your email with your new one." HelperTextPersistent="true"/>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton Type="submit">Request</MatButton>
+            <MatButton Type="button" OnClick="(() => isEmailDialogOpen = false)">Cancel</MatButton>
         </MatDialogActions>
    </EditForm>
 </MatDialog>
 
 @code {
     private EditUserModel user = new();
+    private EditEmailModel email = new();
     private bool isProfileDialogOpen = false;
     private bool isDataDialogOpen = false;
-
+    private bool isEmailDialogOpen = false;
     private long maxFileSize = 1024 * 1024 * 5; // represents 5MB
     private IBrowserFile file;
     private string sourcePath;
@@ -143,6 +168,13 @@
         isDataDialogOpen = false;
     }
 
+    private async Task UpdateEmailRequest()
+    {
+        loggedInUser.EmailAddress = email.NewEmail;
+        await userEndpoint.ResetEmailAsync(loggedInUser.ObjectIdentifier, loggedInUser.EmailAddress);
+        isEmailDialogOpen = false;
+    }
+
     private async Task UpdateProfilePicture()
     {
         if (file is null)
@@ -165,20 +197,6 @@
 
     private UserModel MapUser()
     {
-        return new UserModel
-        {
-            Id = loggedInUser.Id,
-            ObjectIdentifier = loggedInUser.ObjectIdentifier,
-            FileName = loggedInUser.FileName,
-            FirstName = loggedInUser.FirstName,
-            LastName = loggedInUser.LastName,
-            DisplayName = loggedInUser.DisplayName,
-            EmailAddress = loggedInUser.EmailAddress,
-            Roles = loggedInUser.Roles,
-            AuthoredFiles = loggedInUser.AuthoredFiles,
-            VotedOnFiles = loggedInUser.VotedOnFiles,
-            SubscribedAuthors = loggedInUser.SubscribedAuthors,
-            UserSubscriptions = loggedInUser.UserSubscriptions,
-        };
+        return new UserModel(loggedInUser);
     }
 }

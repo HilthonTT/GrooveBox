@@ -145,7 +145,7 @@ public class UserController : ControllerBase
                 IdentityUser newUser = new()
                 {
                     Email = user.EmailAddress,
-                    EmailConfirmed = false,  // Set email confirmation to false initially
+                    EmailConfirmed = false,
                     UserName = user.DisplayName,
                 };
 
@@ -153,13 +153,11 @@ public class UserController : ControllerBase
 
                 if (result.Succeeded)
                 {
-                    // Generate the email confirmation token
                     string token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
 
-                    // Construct the confirmation link URL
-                    string callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = newUser.Id, token }, Request.Scheme);
+                    string callbackUrl = Url.Action("ConfirmEmail", "User", 
+                        new { userId = newUser.Id, token }, Request.Scheme);
 
-                    // Send the confirmation email
                     await _emailSender.SendEmailAsync(user.EmailAddress, "Confirm your account",
                         $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
 
@@ -217,23 +215,19 @@ public class UserController : ControllerBase
             var user = await _userManager.FindByEmailAsync(model.EmailAddress);
             if (user is null || await _userManager.IsEmailConfirmedAsync(user) is false)
             {
-                // To prevent user enumeration attacks, don't reveal that the user does not exist or is not confirmed
-                return Ok(); // You can customize the response based on your requirements
+                return Ok();
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action("ResetPassword", "Account", new { email = model.EmailAddress, token }, Request.Scheme);
 
-            // Send the password reset email
             await _emailSender.SendEmailAsync(model.EmailAddress, "Reset Password",
                 $"Please reset your password by <a href='{callbackUrl}'>clicking here</a>.");
 
-            // Password reset email sent
-            return Ok(); // You can customize the response based on your requirements
+            return Ok();
         }
 
-        // Invalid model state
-        return BadRequest(ModelState); // You can customize the response based on your requirements
+        return BadRequest(ModelState);
     }
 
     [AllowAnonymous]
@@ -243,32 +237,48 @@ public class UserController : ControllerBase
         if (ModelState.IsValid)
         {
             var user = await _userManager.FindByIdAsync(model.UserId);
-            var mongoUser = await _userData.GetUserFromAuthenticationAsync(user.Id);
-            if (user is null || mongoUser is null)
+            if (user is null)
             {
-                // To prevent user enumeration attacks, don't reveal that the user does not exist
-                return Ok(); // You can customize the response based on your requirements
+                return Ok(); 
             }
 
-            // Generate a change email token for the new email address
             string token = await _userManager.GenerateChangeEmailTokenAsync(user, model.NewEmail);
 
-            // Send the confirmation email to the old email address
-            string callbackUrl = Url.Action("ConfirmEmailChange", "Account",
+            string callbackUrl = Url.Action("ConfirmEmailChange", "User",
                 new { userId = user.Id, email = model.NewEmail, token }, Request.Scheme);
 
-            // Customize the confirmation email content
-            string confirmationEmailContent = $"Please confirm your email change by clicking the following link: <a href='{callbackUrl}'>Confirm Email Change</a>.";
+            string confirmationEmailContent = @$"Please confirm your email change by clicking the following link: 
+                <a href='{callbackUrl}'>Confirm Email Change</a>.";
+
             await _emailSender.SendEmailAsync(user.Email, "Confirm Email Change", confirmationEmailContent);
 
-            mongoUser.EmailAddress = model.NewEmail;
-            await _userData.UpdateUserAsync(mongoUser);
-
-            // Email confirmation sent to the old email address
-            return Ok("Email Successfully resetted"); // You can customize the response based on your requirements
+            return Ok();
         }
 
-        // Invalid model state
-        return BadRequest(ModelState); // You can customize the response based on your requirements
+        return BadRequest(ModelState);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("ConfirmEmailChange")]
+    public async Task<IActionResult> ConfirmEmailChange(string userId, string email, string token)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        var mongoUser = await _userData.GetUserFromAuthenticationAsync(userId);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        var result = await _userManager.ChangeEmailAsync(user, email, token);
+
+        if (result.Succeeded)
+        {
+            mongoUser.EmailAddress = email;
+            await _userData.UpdateUserAsync(mongoUser);
+            return Ok();
+        }
+
+        return BadRequest();
     }
 }
