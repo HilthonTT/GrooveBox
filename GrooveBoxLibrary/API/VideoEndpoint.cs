@@ -1,20 +1,16 @@
-﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
 namespace GrooveBoxLibrary.API;
 
 public class VideoEndpoint : IVideoEndpoint
 {
     private readonly IAPIHelper _apiHelper;
-    private readonly ILogger<VideoEndpoint> _logger;
     private readonly IMemoryCache _cache;
 
     public VideoEndpoint(IAPIHelper apiHelper,
-                         ILogger<VideoEndpoint> logger,
                          IMemoryCache cache)
     {
         _apiHelper = apiHelper;
-        _logger = logger;
         _cache = cache;
     }
 
@@ -34,8 +30,7 @@ public class VideoEndpoint : IVideoEndpoint
             }
             else
             {
-                _logger.LogError("GET request failed with status code: {response.StatusCode}", response.StatusCode);
-                return "";
+                throw new Exception(response.ReasonPhrase);
             }
         }
 

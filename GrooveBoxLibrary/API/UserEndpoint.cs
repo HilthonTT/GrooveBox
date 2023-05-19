@@ -31,8 +31,7 @@ public class UserEndpoint : IUserEndpoint
             }
             else
             {
-                _logger.LogError("Error: {response}", response.ReasonPhrase);
-                return new();
+                throw new Exception(response.ReasonPhrase);
             }
         }
 
@@ -48,7 +47,7 @@ public class UserEndpoint : IUserEndpoint
         }
         else
         {
-            _logger.LogError("Error: {response}", response.ReasonPhrase);
+            throw new Exception(response.ReasonPhrase);
         }
     }
 
@@ -62,7 +61,7 @@ public class UserEndpoint : IUserEndpoint
         }
         else
         {
-            _logger.LogError("Error: {response}", response.ReasonPhrase);
+            throw new Exception(response.ReasonPhrase);
         }
     }
 
@@ -75,7 +74,7 @@ public class UserEndpoint : IUserEndpoint
         }
         else
         {
-            _logger.LogError("Error: {response}", response.StatusCode);
+            throw new Exception(response.ReasonPhrase);
         }
     }
 
@@ -89,7 +88,7 @@ public class UserEndpoint : IUserEndpoint
         }
         else
         {
-            _logger.LogError("Error: {response}", response.StatusCode);
+            throw new Exception(response.ReasonPhrase);
         }
     }
 
@@ -103,7 +102,7 @@ public class UserEndpoint : IUserEndpoint
         }
         else
         {
-            _logger.LogError("Error: {response}", response.StatusCode);
+            throw new Exception(response.ReasonPhrase);
         }
     }
 
@@ -117,7 +116,7 @@ public class UserEndpoint : IUserEndpoint
         }
         else
         {
-            _logger.LogError("Error: {response}", response.StatusCode);
+            throw new Exception(response.ReasonPhrase);
         }
     }
 }
