@@ -1,14 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using GrooveBoxLibrary.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace GrooveBoxLibrary.Models;
 public class CreateUserModel
 {
     public string ObjectIdentifier { get; set; }
     [Required]
+    [NoSpace(ErrorMessage = "No spaces are allowed for first name.")]
     public string FirstName { get; set; }
     [Required]
+    [NoSpace(ErrorMessage = "No spaces are allowed for last name.")]
     public string LastName { get; set; }
     [Required]
+    [NoSpace(ErrorMessage = "No spaces are allowed for display name.")]
     public string DisplayName { get; set; }
     [Required]
     public string EmailAddress { get; set; }
