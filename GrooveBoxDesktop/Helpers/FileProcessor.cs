@@ -9,7 +9,7 @@ using SixLabors.ImageSharp.Formats.Png;
 namespace GrooveBoxDesktop.Helpers;
 public class FileProcessor : IFileProcessor
 {
-    private const int MaxFileSizeImage = 5 * 1024 * 1024; // 10 MB
+    private const int MaxFileSizeImage = 5 * 1024 * 1024; // 5 MB
     private const int TargetImageWidth = 800;
     private const int TargetImageHeight = 600;
 

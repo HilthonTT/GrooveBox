@@ -98,13 +98,13 @@
     </div>
 </div>
 
-            @code {
+@code {
     private CreateMediaFileModel media = new();
     private List<GenreModel> genres;
     private string errorMessage = "";
     private string thumbnailPath = "";
     private bool isUploading = false;
-    private long maxFileSizeThumbnail = 1024 * 1024 * 10; // represents 10MB
+    private long maxFileSizeThumbnail = 1024 * 1024 * 5; // represents 5MB
     private long maxFileSizeMedia = 1024 * 1024 * 1000; // represents 1000MB
     private IBrowserFile thumbnailFile;
     private IBrowserFile mediaFile;
