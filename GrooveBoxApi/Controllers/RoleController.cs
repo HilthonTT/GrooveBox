@@ -8,6 +8,7 @@ using System.Security.Claims;
 namespace GrooveBoxApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin")]
 public class RoleController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

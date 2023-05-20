@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GrooveBoxApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-
+[Authorize]
 public class MediaFileController : ControllerBase
 {
     private readonly IMediaFileData _mediaFileData;

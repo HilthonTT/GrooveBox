@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GrooveBoxApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class GenresController : ControllerBase
 {
     private readonly IGenreData _genreData;
